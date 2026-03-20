@@ -1,0 +1,31 @@
+WARN: length mismatch 54542 != 138586 in 10.1 Puma.zip/61.icns
+ERROR: not an icns file (detected: tiff) in 10.4 Tiger.zip/1794.icns
+WARN: length mismatch 49493 != 49491 in 10.5 Leopard.zip/782.icns
+WARN: length mismatch 49493 != 49491 in 10.5 Leopard.zip/783.icns
+WARN: length mismatch 49493 != 49491 in 10.5 Leopard.zip/792.icns
+WARN: length mismatch 244657 != 244658 in 10.5 Leopard.zip/1210.icns
+WARN: length mismatch 244657 != 244658 in 10.5 Leopard.zip/3226.icns
+WARN: length mismatch 244657 != 244658 in 10.6 Snow Loepard.zip/243.icns
+WARN: length mismatch 244657 != 244658 in 10.6 Snow Loepard.zip/1230.icns
+ERROR: not an icns file (detected: tiff) in 10.6 Snow Loepard.zip/2779.icns
+WARN: length mismatch 244657 != 244658 in 10.7 Lion.zip/285.icns
+WARN: length mismatch 244657 != 244658 in 10.8 Mountain Lion.zip/237.icns
+WARN: length mismatch 244657 != 244658 in 10.9 Mavericks.zip/1240.icns
+WARN: length mismatch 244657 != 244658 in 10.10 Yosemite.zip/225.icns
+WARN: length mismatch 244657 != 244658 in 10.11 El Capitan.zip/339.icns
+WARN: length mismatch 244657 != 244658 in 10.11 El Capitan.zip/1344.icns
+WARN: length mismatch 244657 != 244658 in 10.12 Sierra.zip/329.icns
+WARN: length mismatch 244657 != 244658 in 10.12 Sierra.zip/1398.icns
+WARN: length mismatch 244657 != 244658 in 10.13 High Sierra.zip/1446.icns
+WARN: length mismatch 244657 != 244658 in 10.14 Mojave.zip/1582.icns
+WARN: length mismatch 244657 != 244658 in 10.15 Catalina.zip/972.icns
+WARN: length mismatch 244657 != 244658 in 11 Big Sur.zip/785.icns
+WARN: length mismatch 244657 != 244658 in 12 Monterey.zip/804.icns
+ERROR: not an icns file (detected: png) in 13 Ventura.zip/843.icns
+WARN: length mismatch 244657 != 244658 in 13 Ventura.zip/908.icns
+ERROR: not an icns file (detected: png) in 14 Sonoma.zip/864.icns
+WARN: length mismatch 244657 != 244658 in 14 Sonoma.zip/929.icns
+ERROR: not an icns file (detected: png) in 15 Sequoia.zip/812.icns
+WARN: length mismatch 244657 != 244658 in 15 Sequoia.zip/878.icns
+ERROR: not an icns file (detected: png) in 26 Tahoe.zip/817.icns
+WARN: length mismatch 244657 != 244658 in 26 Tahoe.zip/886.icns

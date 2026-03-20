@@ -1,0 +1,39 @@
+#!/bin/bash
+# Deeply unpack a macOS install image. And extract all icns files.
+
+IN=$1
+
+if [[ ! -e $IN ]]; then
+	echo "  usage: $(basename "$0") <file or dir>"
+	exit 1
+fi
+
+# $1: top-most input file (by this time it is a dir)
+# $2: output dir
+exportIcns() {
+	mkdir -p "$2"
+	i=0
+	while read -r x; do
+		cp "$x" "$2/$i.icns"
+		echo "$i,$x" >> "$2/_src.txt"
+		(( i++ ))
+		echo -ne "\r$i"
+	done < <(find "$1" -type f -iname "*.icns" -not -name "._*" 2> /dev/null | sort)
+	echo " files done."
+}
+
+if [[ ! -f "$IN/__icns_extract_finished_" ]]; then
+	echo "Depp-unpack '$IN'"
+	"$(dirname "$0")/iso-deep-unpack" "$IN" || exit 1
+	touch "$IN/__icns_extract_finished_"
+fi
+
+if [[ ! -f "${IN}_icns/_src.txt" ]]; then
+	echo
+	echo "Extracting Resource Forks"
+	"$(dirname "$0")/rsrc-to-icns.py" "$IN" -a
+
+	echo
+	echo "export .icns files"
+	exportIcns "$IN" "${IN}_icns"
+fi

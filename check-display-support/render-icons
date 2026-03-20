@@ -1,0 +1,112 @@
+#!/bin/bash
+# Automatically take screenshot of all app icons
+
+if [[ ! $1 -gt 0 ]]; then
+	echo "usage: $(basename "$0") <sleep>"
+	echo
+	echo '<sleep>: wait sec between screenshots to allow macOS to render icons'
+	exit 0
+fi
+
+SLEEP=$1
+indir=out-variants
+outdir=out-rendered
+mkdir -p "$outdir"
+
+echo 'generate quicklook thumbnail icons ...'
+
+
+# $1: destination-dir (type), $2: source-files (.app)
+render_quicklook() {
+	dst_dir=$1
+	src=$2
+	name=$(basename "$src")
+	dst_file="$dst_dir/$name.png"
+	# skip already existing
+	if [ -e "$dst_file" ]; then
+		return
+	fi
+	mkdir -p "$dst_dir"
+	qlmanage -x -t -s "${name%%-*}" "$src" -o "$dst_dir" > /dev/null
+	if [ ! -e "$dst_file" ]; then
+		touch "$dst_file"
+	fi
+}
+
+render_all_icns() {
+	for IN in "$indir/icns/"*/; do
+		typ=$(basename "$IN")
+		OUT=$outdir/icns/$typ
+		echo "quicklook thumbnails for $typ"
+		for src in "$IN"*; do
+			render_quicklook "$OUT" "$src"
+		done
+	done
+}
+
+# $1: destination-file (.png), $2: DS_Store size, $3-: source-files (.app)
+render_app() {
+	dst=$1
+	size=$2
+	shift 2
+	# skip already existing
+	if [ -e "$dst" ]; then
+		return
+	fi
+	rm -rf tmp
+	mkdir -p tmp/render
+	cp -R "$@" tmp/render 2> /dev/null
+	if [[ -z $(ls tmp/render) ]]; then
+		return
+	fi
+	echo "wait for screenshot $dst"
+	cp "assets/dsstore-$size" tmp/.DS_Store
+	sleep 0.5
+	open tmp/render
+	sleep "$SLEEP"
+	mkdir -p "$(dirname "$dst")"
+	screencapture -t png "$dst"
+	# close Finder window to allow DS_Store config reset
+	osascript -e 'tell application "Finder" to close front window' > /dev/null
+	sleep 0.5
+}
+
+render_all_app() {
+	echo 'Warning:'
+	echo ' - Dont interact with the UI in the next 10 minutes.'
+	echo ' - Disable all screensavers!'
+	echo ' - Make sure Terminal has Screen Recording capability'
+	# just to trigger security popup
+	osascript -e 'tell application "Finder" to id of window 1' > /dev/null 2> /dev/null
+	screencapture -c -x || echo ''
+	read -n 1 -p 'ready? press any key to continue ' foo
+	echo
+	case $foo in
+		$'\e') echo 'aborting'; return 1;;
+	esac
+	echo
+	echo 'Automatic screenshot in progress ...'
+
+	for IN in "$indir/app/"*/; do
+		OUT=$outdir/app/$(basename "$IN")
+		render_app "$OUT/0-sm.png" 128 "$IN"{16,18,24,32,36,48,64}-*
+		render_app "$OUT/128.png" 256 "$IN"128-*
+		render_app "$OUT/256.png" 256 "$IN"256-*
+		render_app "$OUT/512-ic09.png" 512 "$IN"512-ic09*
+		render_app "$OUT/512-ic14.png" 512 "$IN"512-ic14*
+		render_app "$OUT/1024-ic10.png" 512 "$IN"1024-ic10*
+	done
+	echo 'done.'
+}
+
+
+if [[ ! -d "$outdir/app" ]]; then
+	render_all_icns
+fi
+
+osascript -e 'tell application "System Events" to set autohide of dock preferences to true' > /dev/null
+
+render_all_app
+rm -rf tmp
+
+osascript -e 'tell application "System Events" to set autohide of dock preferences to false' > /dev/null

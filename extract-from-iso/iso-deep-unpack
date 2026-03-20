@@ -1,0 +1,110 @@
+#!/bin/bash
+# Deeply unpack a macOS install image.
+
+IN=$1
+
+if [[ ! -e $IN ]]; then
+	echo "  usage: $(basename "$0") <file.{iso,dmg,pkg}>"
+	exit 1
+fi
+
+case $IN in
+	*.iso|*.dmg|*.pkg|*.mpkg|*.zip|*.cdr|*.toast);;
+	*)
+		echo "ERROR: file must be of: ISO, DMG, PKG, MPKG, ZIP, CDR, TOAST"
+		exit 1;;
+esac
+
+# $1: path/to/archive.zip
+un_zip() {
+	echo "unzip '$1'"
+	unzip -q "$1" -d "$1_" && rm "$1" && mv "$1_" "$1"
+}
+
+# $1: path/to/archive.tar
+un_tar() {
+	echo "untar '$1'"
+	mkdir -p "$1_"
+	tar -xf "$1" -C "$1_" && rm "$1" && mv "$1_" "$1"
+}
+
+# $1: path/to/package.pkg
+un_pkg() {
+	echo "unpack '$1'"
+	pkgutil --expand-full "$1" "$1_" && rm "$1" && mv "$1_" "$1"
+}
+
+# $1: path/to/image.dmg
+un_dmg() {
+	vols=$(hdiutil attach "$1" -readonly -nobrowse -noverify -noautofsck | grep "/Volumes/.*" -o)
+	if [[ -z $vols ]]; then
+		echo "ignore broken '$1'"
+		return 1
+	fi
+	echo "mount '$1'"
+	while read -r x; do
+		echo "rsync disk '$x'"
+		rsync -aE "$x/" "$1_"
+	done < <(echo "$vols")
+	while read -r x; do
+		hdiutil detach "$x"
+	done < <(echo "$vols")
+	rm "$1"
+	mv "$1_" "$1"
+}
+
+# $1: path/to/disk.image
+un_image() {
+	echo "convert '$1'"
+	hdiutil convert "$1" -format UDRO -o "$1.dmg" 1> /dev/null || return 1
+	rm "$1"
+	un_dmg "$1.dmg" && mv "$1.dmg" "$1"
+}
+
+# $1: path/to/payload.000
+un_payload() {
+	base=${1%.000}
+	for i in "00"{0..999}; do
+		fname=$base.${i#"${i%???}"}
+		if [[ -f "$fname" ]]; then
+			echo extract "$fname"
+			aa extract -d "$base" -i "$fname" && rm "$fname"
+		fi
+	done 
+}
+
+# $1: top-most input file
+try_unpack() {
+	any=1
+	while read -r x; do
+		case $x in
+			*.[pP][kK][gG]|*.[mM][pP][kK][gG])
+				if un_pkg "$x"; then any=0; fi;;
+			*.[dD][mM][gG]|*.[iI][sS][oO]|*.[cC][dD][rR]|*.[tT][oO][aA][sS][tT])
+				if un_dmg "$x"; then any=0; fi;;
+			*.[tT][aA][rR]|*.[tT][aA][rR].[gG][zZ]|*.[pP][aA][xX].[gG][zZ])
+				if un_tar "$x"; then any=0; fi;;
+			*.[zZ][iI][pP])
+				if un_zip "$x"; then any=0; fi;;
+			*.[iI][mM][aA][gG][eE])
+				if un_image "$x"; then any=0; fi;;
+			*/payload.000)
+				if un_payload "$x"; then any=0; fi;;
+		esac
+	done < <(find "$1" -type f -not -name "._*" \( \
+		-iname "*.pkg" -o -iname "*.mpkg" -o \
+		-iname "*.dmg" -o -iname "*.iso" -o -iname "*.cdr" -o -iname "*.toast" -o \
+		-iname "*.tar" -o -iname "*.tar.gz" -o -iname "*.pax.gz" -o \
+		-iname "*.zip" -o \
+		-iname "*.image" -o \
+		-name "payload.000" \
+		\) 2> /dev/null)
+	return $any
+}
+
+while try_unpack "$IN"; do
+	echo
+	echo "... changes detected. rerun ..."
+	echo
+done
+echo done.
