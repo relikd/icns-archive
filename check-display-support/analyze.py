@@ -84,9 +84,8 @@ class DB:
             );
         ''')
 
-    def exists(self, os_ver):  # type: (str) -> bool
-        self.cur.execute('SELECT 1 FROM tbl WHERE os=?', [os_ver])
-        return self.cur.fetchone() is not None
+    def all_os(self):  # type: () -> list[str]
+        return [x[0] for x in db.cur.execute('SELECT DISTINCT os FROM tbl')]
 
     def add(self, os_ver):  # type: (str) -> None
         self.cur.executemany(
@@ -108,8 +107,9 @@ class DB:
 
     def pre_populate(self, os_list):  # type: (DB, list[str]) -> None
         ''' Create exhaustive type table with empty values '''
+        done = set(self.all_os())
         for os_name in os_list:
-            if not self.exists(os_name):
+            if os_name not in done:
                 self.add(os_name)
         self.save()
 
@@ -160,6 +160,14 @@ class DB:
             SELECT icns, app FROM tbl WHERE os=? AND typ=? AND key=?
         ''', (os_ver, typ, key)).fetchone()
 
+    def good_fields(self, group):  # type: (str) -> list[tuple[str, str, str]]
+        ''' Return `(key, typ, os-list)` where icns and app are both good. '''
+        fields = ('icns', 'app') if group == 'both' else (group, group)
+        return self.cur.execute('''
+            SELECT key, typ, group_concat(DISTINCT os) FROM tbl
+            WHERE %s>=? AND %s>=? GROUP BY key, typ
+        ''' % fields, [Enum.MAN_GOOD, Enum.MAN_GOOD]).fetchall()
+
 
 #######################################
 #
@@ -186,10 +194,45 @@ def matches_expectation(icns, app):  # type: (int, int) -> bool
         (app == Enum.MAN_WRONG and icns <= Enum.MAN_WRONG)
 
 
-def write_markdown(db, os_list, outfile):  # type: (DB, list[str], str) -> None
+def write_markdown(db, outfile):  # type: (DB, str) -> None
+    os_list = sorted_os(db.all_os())
     types = ['jp2', 'jpf', 'png', 'rgb', 'argb', 'argb+mask']
     with open(outfile, 'w') as fp:
         fp.write('''# Rendering Analysis
+
+## Data format usage
+
+Shows the first OS version which could render an icon correctly.
+
+earliest version tested: OS %s
+latest version tested: macOS %s
+''' % (os_list[0] + '  ', os_list[-1]))  # 2 spaces for markdown newline
+
+        for group in ['icns', 'app', 'both']:
+            fp.write('''
+
+### Filetype: %s
+
+ key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
+:---:|:----:|-------|-------|-------|-------|-------|-----------
+''' % group)
+            usage = db.good_fields(group)
+            for sz, keys in ICNS_TYPES.items():
+                for key in keys:
+                    fp.write('%s | %4d ' % (key, sz))
+                    for typ in types:
+                        os_range = next((sorted_os(o.split(','))
+                                        for k, t, o in usage
+                                        if k == key and t == typ), None)
+                        if os_range is None:
+                            fp.write('|       ')
+                        else:
+                            fp.write('| %s ' % os_range[0].ljust(5))
+                    fp.write('\n')
+
+        fp.write('''
+
+## Detailed Render Results
 
 Legend:%(nl)s
 ✅ The image renders correctly.%(nl)s
@@ -197,7 +240,7 @@ Legend:%(nl)s
 ❌ Does not render correct image.%(nl)s
 🚫 Could not render / rendering error / no output.
 
-## How to read the results
+### How to read the results
 
 This is a combined table. Showing results of both, icns and app rendering.
 If a cell contains only one emoji, the result is valid for both. If the cell is
@@ -208,10 +251,11 @@ rendering (the same icns file but bundled inside an app bundle).
 when used inside an `.app` bundle (the very same icns file!). Likewise, ✅/❌
 renders standalone icns files fine but fails when bundled in an app.
 ''' % {'nl': '  '})  # markdown new line
+
         for os_ver in os_list:
             fp.write('''
 
-## macOS %s
+### macOS %s
 
  key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
 :---:|:----:|:-----:|:-----:|:-----:|:-----:|:-----:|:---------:
@@ -235,6 +279,12 @@ renders standalone icns files fine but fails when bundled in an app.
 #
 #######################################
 
+def sorted_os(in_list):  # type: (list[str]) -> list[str]
+    ''' Sort by OS version number. '''
+    return sorted(filter(lambda x: x[0].isdigit(), in_list),
+                  key=lambda x: [int(n) for n in x.split()[0].split('.')])
+
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print('usage: %s <src-dir> <db-path>' % os.path.basename(sys.argv[0]))
@@ -245,12 +295,8 @@ if __name__ == '__main__':
         print('ERROR: "%s" does not contain OS versions' % root)
         exit(1)
 
-    # sort by OS version number
-    sorted_os = sorted(filter(lambda x: x[0].isdigit(), os.listdir(root)),
-                       key=lambda x: [int(n) for n in x.split()[0].split('.')])
-
     db = DB(db_path)
-    db.pre_populate(sorted_os)
+    db.pre_populate(sorted_os(os.listdir(root)))
     db.populate_automatically(root)
     db.populate_manually(root)
-    write_markdown(db, sorted_os, db_path + '-results.md')
+    write_markdown(db, db_path + '-results.md')

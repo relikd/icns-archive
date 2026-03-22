@@ -13,11 +13,14 @@ You can query the database manually to see specifics (`fake=0`).
 
 ## Part 2
 
-- Many icns types render fine in `.icns` __OR__ in `.app` bundles, but not both.
+- Many icns types render fine in `.icns` __OR__ in `.app` bundles, but not both (`icsb`, `icp6`).
 - The ARGB format for icns files was introduced in macOS 11.
-- But apparently, Apple could render some ARGB fields when placed in an `.app` bundle way back in 10.5 (or earlier!)
+- But apparently, Apple could render some ARGB fields back in 10.5 (or earlier!) when placed in an `.app` bundle.
 - Uncompressed RGB / ARGB was never supported.
-- In macOS 10.14 and 10.15 the ARGB fields `ic04` and `ic05` can be "fixed" by including a transparency mask (`s8mk` and `l8mk` respectively). Technically, these transparency masks should only be used with the RGB fields `is32` and `il32`.
+- In macOS 10.14 and 10.15 the ARGB fields `ic04` and `ic05` can be "fixed" by including a transparency mask (`s8mk` and `l8mk` respectively).
+  This is wrong on a technical level.
+  For one, these transparency masks are reserved for the RGB fields `is32` and `il32`
+  — and ARGB already contains its own transparency mask.
 - A detailed analysis can be found at [rendered.db-results.md](./rendered.db-results.md)
 
 Curiously, on my local machine (macOS 15) I could not render `jp2` images, only `jpf`.
