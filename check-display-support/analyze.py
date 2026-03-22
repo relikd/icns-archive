@@ -161,12 +161,24 @@ class DB:
         ''', (os_ver, typ, key)).fetchone()
 
     def good_fields(self, group):  # type: (str) -> list[tuple[str, str, str]]
-        ''' Return `(key, typ, os-list)` where icns and app are both good. '''
-        fields = ('icns', 'app') if group == 'both' else (group, group)
+        ''' Return `(key, typ, os-list)` where icns and/or app are good. '''
+        fields = (group.split('+')[0], group.split('+')[-1])
         return self.cur.execute('''
             SELECT key, typ, group_concat(DISTINCT os) FROM tbl
             WHERE %s>=? AND %s>=? GROUP BY key, typ
         ''' % fields, [Enum.MAN_GOOD, Enum.MAN_GOOD]).fetchall()
+
+    def new_keys(self, group):  # type: (str) -> dict[str, dict[str, set[str]]]
+        ''' Return `{(os, typ): key-set}`. '''
+        fields = (group.split('+')[0], group.split('+')[-1])
+        return dict(
+            (o, dict(
+                (t, set(k.split(',')))
+                for t, k in self.cur.execute('''
+                    SELECT typ, group_concat(DISTINCT key) FROM tbl
+                    WHERE os=? AND %s>=? AND %s>=? GROUP BY typ
+                ''' % fields, [o, Enum.MAN_GOOD, Enum.MAN_GOOD])))
+            for o in self.all_os())
 
 
 #######################################
@@ -196,31 +208,60 @@ def matches_expectation(icns, app):  # type: (int, int) -> bool
 
 def write_markdown(db, outfile):  # type: (DB, str) -> None
     os_list = sorted_os(db.all_os())
-    types = ['jp2', 'jpf', 'png', 'rgb', 'argb', 'argb+mask']
+    columns = ['jp2', 'jpf', 'png', 'rgb', 'argb', 'argb+mask']
     with open(outfile, 'w') as fp:
         fp.write('''# Rendering Analysis
 
-## Data format usage
+Table of contents:
+- [Newly introduced keys](#newly-introduced-keys)
+- [Detailed render results](#detailed-render-results)
 
-Shows the first OS version which could render an icon correctly.
 
-earliest version tested: OS %s
-latest version tested: macOS %s
-''' % (os_list[0] + '  ', os_list[-1]))  # 2 spaces for markdown newline
+## Newly introduced keys
 
-        for group in ['icns', 'app', 'both']:
+earliest version tested: OS %(min)s%(nl)s
+latest version tested: macOS %(max)s
+
+Shows the first OS version which renders the icon correctly.%(nl)s
+=> full correctness: `icns+app`%(nl)s
+=> partial correctness: either `icns` or `app`
+''' % {'nl': '  ', 'min': os_list[0], 'max': os_list[-1]})  # markdown newline
+
+        for group in ['icns+app', 'icns', 'app']:
+            updates = db.new_keys(group)
+            usage = db.good_fields(group)
+
+            # Quick overview timeline (mixed types)
+
             fp.write('''
 
-### Filetype: %s
+## Render success: %s
+
+ OS   | new keys
+------|----------
+''' % group)
+            known = dict((x, set('')) for x in columns)
+            for os_ver in os_list:
+                new_keys = set()
+                for typ in columns:
+                    this_keys = set(updates[os_ver].get(typ, []))
+                    new_keys |= this_keys - known[typ]
+                    known[typ] |= this_keys
+                if new_keys:
+                    fp.write('%s | %s\n' % (
+                        os_ver.ljust(5), ', '.join(sorted(new_keys))))
+
+            # Detailed timeline with version usage
+
+            fp.write('''
 
  key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
 :---:|:----:|-------|-------|-------|-------|-------|-----------
-''' % group)
-            usage = db.good_fields(group)
+''')
             for sz, keys in ICNS_TYPES.items():
                 for key in keys:
                     fp.write('%s | %4d ' % (key, sz))
-                    for typ in types:
+                    for typ in columns:
                         os_range = next((sorted_os(o.split(','))
                                         for k, t, o in usage
                                         if k == key and t == typ), None)
@@ -232,7 +273,7 @@ latest version tested: macOS %s
 
         fp.write('''
 
-## Detailed Render Results
+## Detailed render results
 
 Legend:%(nl)s
 ✅ The image renders correctly.%(nl)s
@@ -263,7 +304,7 @@ renders standalone icns files fine but fails when bundled in an app.
             for sz, keys in ICNS_TYPES.items():
                 for key in keys:
                     fp.write('%s | %4d ' % (key, sz))
-                    for typ in types:
+                    for typ in columns:
                         icns, app = db.select(os_ver, typ, key)
                         fp.write('| ' + printable(icns))
                         if matches_expectation(icns, app):
