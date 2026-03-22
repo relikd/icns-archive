@@ -1,4 +1,7 @@
-## Analysis results
+# Analysis results
+
+
+## Part 1
 
 - Icns files were first used in OS 8.5. Before that, icons were stored directly in Resource Fork fields.
 - The `ICON`-key was never used in icns files (only in Resource Forks).
@@ -6,3 +9,17 @@
 
 ¹ The analysis-results-table includes both, actual icns files and Resource Fork icons.
 You can query the database manually to see specifics (`fake=0`).
+
+
+## Part 2
+
+- Many icns types render fine in `.icns` __OR__ in `.app` bundles, but not both.
+- The ARGB format for icns files was introduced in macOS 11.
+- But apparently, Apple could render some ARGB fields when placed in an `.app` bundle way back in 10.5 (or earlier!)
+- Uncompressed RGB / ARGB was never supported.
+- In macOS 10.14 and 10.15 the ARGB fields `ic04` and `ic05` can be "fixed" by including a transparency mask (`s8mk` and `l8mk` respectively). Technically, these transparency masks should only be used with the RGB fields `is32` and `il32`.
+- A detailed analysis can be found at [rendered.db-results.md](./rendered.db-results.md)
+
+Curiously, on my local machine (macOS 15) I could not render `jp2` images, only `jpf`.
+But when tested in a macOS 15 VM, `jp2` icons rendered fine.
+I do not know why this issue exists (and whether it may affect other machines).
