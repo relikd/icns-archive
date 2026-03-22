@@ -13,11 +13,12 @@ General procedure:
 This must be done on the target machine / macOS version because the rendering is the important part.
 Make sure no UI (or cursor) is blocking the thumbnail preview and deactivate any screen savers.
 
-4) `verify.py` evaluates all rendered `.icns.png` files for a pixel-perfect match and print out a format-support matrix table.  
-*Note:* Unfortunatelly, all `app` thumbnails must be checked manually.
-
-5) `postprocess-crop.py` crops all `app` screenshots to only include the window content.  
+4) `postprocess-crop.py` crops all `app` screenshots to only include the window content.  
 *Note:* Images are scaled, so expect blur and slightly off color values.
+
+5) `postprocess-collage.py` arranges all cropped `app` images in a single file.
+
+6) `analyze.py` evaluates all rendered `.png` files for a pixel-perfect match and print out a format-support matrix table.  
 
 
 ¹ The script tests both, compressed and uncompressed, RGB data.

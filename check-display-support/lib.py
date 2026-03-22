@@ -17,6 +17,7 @@ ICNS_TYPES = {
     512: ['ic09', 'ic14'],
     1024: ['ic10'],
 }
+ICNS_TYPES_SET = set(y for x in ICNS_TYPES.values() for y in x)
 
 
 def makedir(fname):  # type: (str) -> None

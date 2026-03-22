@@ -1,7 +1,7 @@
 
 help:
 	@echo available:
-	@echo verify, crop, crop-cleanup, collage, collage-cleanup
+	@echo verify, crop, crop-cleanup, collage, collage-cleanup, analyze
 
 verify:
 	@for x in ../rendered-archive/*/; do \
@@ -40,3 +40,6 @@ collage-cleanup:
 			rm -rf "$$x"; \
 		fi \
 	done
+
+analyze:
+	./analyze.py ../rendered-archive/ ../results/rendered.db
