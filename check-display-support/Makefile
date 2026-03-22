@@ -1,15 +1,7 @@
 
 help:
 	@echo available:
-	@echo verify, crop, crop-cleanup, collage, collage-cleanup, analyze
-
-verify:
-	@for x in ../rendered-archive/*/; do \
-		if [ ! -e "$$x/analysis.md" ] || [ ! -s "$$x/analysis.md" ]; then \
-			echo "processing $$x"; \
-			./verify.py "$$x" > "$$x/analysis.md"; \
-		fi \
-	done
+	@echo crop, crop-cleanup, collage, collage-cleanup, analyze
 
 crop:
 	@for x in ../rendered-archive/*/; do \

@@ -3,7 +3,7 @@ help:
 	@echo available: analyze, zip
 
 analyze:
-	./analyze.py ../icon-archive/ ../results/analysis.db 2>> ../results/analysis-error.log
+	./analyze.py ../icon-archive/ ../results/extracted.db 2>> ../results/extracted-error.log
 
 zip:
 	@find ../icon-archive/ -name '.DS_Store' -type f -delete -print

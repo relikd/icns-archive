@@ -13,5 +13,4 @@ __Warning:__ the disk image will be deleted in the process. Make a copy!
 
 ## Analyze
 
-`analyze.py` will create (or update) the `analysis.db` database and then run an automated evaluation on it.
-Both, results and db, are stored in [icon-archive](../icon-archive).
+`analyze.py` will create (or update) the `extracted.db` database (see [results](../results)) and then run an automated evaluation on it.
