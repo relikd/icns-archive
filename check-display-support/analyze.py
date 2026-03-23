@@ -156,9 +156,21 @@ class DB:
         self.save()
 
     def cleanup(self):  # type: () -> None
-        self.cur.execute('''
+        # remove entries which weren't tested
+        self.cur.executescript('''
             DELETE FROM tbl
-            WHERE typ='argb+mask' AND size NOT IN (16, 32, 48, 128)
+            WHERE typ='argb+mask' AND size NOT IN (16, 32, 48, 128);
+
+            DELETE FROM tbl
+            WHERE os='10.4' AND key NOT IN (
+                'ic07', 'ic08', 'ic09', 'ic10', 'icp4', 'icp5', 'icp6', 'ih32',
+                'il32', 'is32', 'it32');
+
+            DELETE FROM tbl
+            WHERE os IN ('10.0', '10.1', '10.2', '10.3')
+                AND key NOT IN ('ih32', 'il32', 'is32', 'it32');
+
+            VACUUM;
         ''')
         self.save()
 
@@ -293,12 +305,18 @@ Legend:%(nl)s
 
 This is a combined table. Showing results of both, icns and app rendering.
 If a cell contains only one emoji, the result is valid for both. If the cell is
-split, the first emoji means icns rendering and the second emoji stands for app
-rendering (the same icns file but bundled inside an app bundle).
+split up, the first emoji applies to icns rendering and the second emoji to app
+rendering (it is the same icns file, just put inside an app bundle).
 
 ❌/✅ means the icon cannot be rendered in a plain `icns` file but renders fine
 when used inside an `.app` bundle (the very same icns file!). Likewise, ✅/❌
 renders standalone icns files fine but fails when bundled in an app.
+
+Empty cells were not tested at all. E.g., for `argb+mask` only sizes 16, 32,
+48, and 128 are relevant because no other mask-sizes exist. Early OS versions
+skip some keys because generating a preview gets progressively harder the older
+it gets. Though I did preview all keys in 10.3 and 10.4 (even if the cells are
+empty) and they are indeed non-rendering.
 ''' % {'nl': '  '})  # markdown new line
 
         for os_ver in os_list:
