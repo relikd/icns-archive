@@ -169,8 +169,6 @@ class DB:
             DELETE FROM tbl
             WHERE os IN ('10.0', '10.1', '10.2', '10.3')
                 AND key NOT IN ('ih32', 'il32', 'is32', 'it32');
-
-            VACUUM;
         ''')
         self.save()
 
@@ -226,75 +224,64 @@ def matches_expectation(icns, app):  # type: (int, int) -> bool
         (app == Enum.MAN_WRONG and icns <= Enum.MAN_WRONG)
 
 
-def write_markdown(db, outfile):  # type: (DB, str) -> None
-    os_list = sorted_os(db.all_os())
-    columns = ['jp2', 'jpf', 'png', 'rgb', 'argb', 'argb+mask']
-    with open(outfile, 'w') as fp:
-        fp.write('''# Rendering Analysis
-
-Table of contents:
-- [Newly introduced keys](#newly-introduced-keys)
-- [Detailed render results](#detailed-render-results)
+def tbl_head(columns, width, center=False):  # type:(list[str],int,bool) -> str
+    ch = ':' if center else '-'
+    pretty = [x.ljust(width) for x in columns]
+    return ' key | size | ' + ' | '.join(x for x in pretty) + \
+        '\n:---:|:----:|' + '|'.join(ch + '-' * len(x) + ch for x in pretty)
 
 
-## Newly introduced keys
-
+def desc_timeline(min_os, max_os):  # type: (str, str) -> str
+    return '''
 earliest version tested: OS %(min)s%(nl)s
 latest version tested: macOS %(max)s
 
 Shows the first OS version which renders the icon correctly.%(nl)s
 => full correctness: `icns+app`%(nl)s
 => partial correctness: either `icns` or `app`
-''' % {'nl': '  ', 'min': os_list[0], 'max': os_list[-1]})  # markdown newline
+''' % {'nl': '  ', 'min': min_os, 'max': max_os}
 
-        for group in ['icns+app', 'icns', 'app']:
-            updates = db.new_keys(group)
-            usage = db.good_fields(group)
 
-            # Quick overview timeline (mixed types)
+def tbl_timeline_tldr(db, group, os_list):  # type: (DB, str, list[str]) -> str
+    ''' Quick overview timeline (mixed types) '''
+    columns = ['jp2', 'jpf', 'png', 'rgb', 'argb', 'argb+mask']
+    updates = db.new_keys(group)
+    known = dict((x, set('')) for x in columns)
 
-            fp.write('''
+    txt = ' OS   | new keys\n------|----------'
+    for os_ver in os_list:
+        new_keys = set()
+        for typ in columns:
+            this_keys = set(updates[os_ver].get(typ, []))
+            new_keys |= this_keys - known[typ]
+            known[typ] |= this_keys
+        if new_keys:
+            txt += '\n%s | %s' % (os_ver.ljust(5), ', '.join(sorted(new_keys)))
+    return txt + '\n'
 
-## Render success: %s
 
- OS   | new keys
-------|----------
-''' % group)
-            known = dict((x, set('')) for x in columns)
-            for os_ver in os_list:
-                new_keys = set()
-                for typ in columns:
-                    this_keys = set(updates[os_ver].get(typ, []))
-                    new_keys |= this_keys - known[typ]
-                    known[typ] |= this_keys
-                if new_keys:
-                    fp.write('%s | %s\n' % (
-                        os_ver.ljust(5), ', '.join(sorted(new_keys))))
+def tbl_timeline_full(db, group):  # type: (DB, str) -> str
+    ''' Detailed timeline with version usage '''
+    columns = ['jp2', 'jpf', 'png', 'rgb', 'argb', 'argb+mask']
+    usage = db.good_fields(group)
 
-            # Detailed timeline with version usage
+    txt = tbl_head(columns, 5)
+    for sz, keys in ICNS_TYPES.items():
+        for key in keys:
+            txt += '\n%s | %4d ' % (key, sz)
+            for typ in columns:
+                os_range = next((sorted_os(o.split(','))
+                                for k, t, o in usage
+                                if k == key and t == typ), None)
+                if os_range is None:
+                    txt += '|       '
+                else:
+                    txt += '| %s ' % os_range[0].ljust(5)
+    return txt + '\n'
 
-            fp.write('''
 
- key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
-:---:|:----:|-------|-------|-------|-------|-------|-----------
-''')
-            for sz, keys in ICNS_TYPES.items():
-                for key in keys:
-                    fp.write('%s | %4d ' % (key, sz))
-                    for typ in columns:
-                        os_range = next((sorted_os(o.split(','))
-                                        for k, t, o in usage
-                                        if k == key and t == typ), None)
-                        if os_range is None:
-                            fp.write('|       ')
-                        else:
-                            fp.write('| %s ' % os_range[0].ljust(5))
-                    fp.write('\n')
-
-        fp.write('''
-
-## Detailed render results
-
+def desc_detailed():  # type: () -> str
+    return '''
 Legend:%(nl)s
 ✅ The image renders correctly.%(nl)s
 🔄 The color order is flipped. BGR instead of RGB.%(nl)s
@@ -317,27 +304,49 @@ Empty cells were not tested at all. E.g., for `argb+mask` only sizes 16, 32,
 skip some keys because generating a preview gets progressively harder the older
 it gets. Though I did preview all keys in 10.3 and 10.4 (even if the cells are
 empty) and they are indeed non-rendering.
-''' % {'nl': '  '})  # markdown new line
+''' % {'nl': '  '}  # markdown new line
+
+
+def tbl_os_detailed(db, os_ver):  # type: (DB, str) -> str
+    columns = ['jp2', 'jpf', 'png', 'rgb', 'argb', 'argb+mask']
+
+    txt = tbl_head(columns, 5, center=True)
+    for sz, keys in ICNS_TYPES.items():
+        for key in keys:
+            txt += '\n%s | %4d ' % (key, sz)
+            for typ in columns:
+                icns, app = db.select(os_ver, typ, key)
+                txt += '| ' + printable(icns)
+                if matches_expectation(icns, app):
+                    txt += '    '
+                else:
+                    txt += '/' + printable(app) + ' '
+    return txt + '\n'
+
+
+def write_markdown(db, outfile):  # type: (DB, str) -> None
+    os_list = sorted_os(db.all_os())
+    with open(outfile, 'w') as fp:
+        fp.write('''# Rendering Analysis
+
+Table of contents:
+- [Newly introduced keys](#newly-introduced-keys)
+- [Detailed render results](#detailed-render-results)
+''')
+        fp.write('\n\n## Newly introduced keys\n')
+        fp.write(desc_timeline(os_list[0], os_list[-1]))
+
+        for group in ['icns+app', 'icns', 'app']:
+            fp.write('\n\n## Render success: %s' % group)
+            fp.write('\n\n' + tbl_timeline_tldr(db, group, os_list))
+            fp.write('\n\n' + tbl_timeline_full(db, group))
+
+        fp.write('\n\n## Detailed render results\n')
+        fp.write(desc_detailed())
 
         for os_ver in os_list:
-            fp.write('''
-
-### macOS %s
-
- key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
-:---:|:----:|:-----:|:-----:|:-----:|:-----:|:-----:|:---------:
-''' % (os_ver))
-            for sz, keys in ICNS_TYPES.items():
-                for key in keys:
-                    fp.write('%s | %4d ' % (key, sz))
-                    for typ in columns:
-                        icns, app = db.select(os_ver, typ, key)
-                        fp.write('| ' + printable(icns))
-                        if matches_expectation(icns, app):
-                            fp.write('    ')
-                        else:
-                            fp.write('/' + printable(app) + ' ')
-                    fp.write('\n')
+            fp.write('\n\n### macOS %s' % os_ver)
+            fp.write('\n\n' + tbl_os_detailed(db, os_ver))
 
 
 #######################################
