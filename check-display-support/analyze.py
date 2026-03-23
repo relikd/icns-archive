@@ -311,16 +311,25 @@ def tbl_os_detailed(db, os_ver):  # type: (DB, str) -> str
     columns = ['jp2', 'jpf', 'png', 'rgb', 'argb', 'argb+mask']
 
     txt = tbl_head(columns, 5, center=True)
+    omitted = []
     for sz, keys in ICNS_TYPES.items():
         for key in keys:
+            pairs = [db.select(os_ver, typ, key) for typ in columns]
+
+            # skip keys/lines with no test result
+            if all(x == (Enum.NEVER, Enum.NEVER) for x in pairs):
+                omitted.append(key)
+                continue
+
             txt += '\n%s | %4d ' % (key, sz)
-            for typ in columns:
-                icns, app = db.select(os_ver, typ, key)
+            for icns, app in pairs:
                 txt += '| ' + printable(icns)
                 if matches_expectation(icns, app):
                     txt += '    '
                 else:
                     txt += '/' + printable(app) + ' '
+    if omitted:
+        txt += '\n\n*omitted*: ' + ', '.join(omitted)
     return txt + '\n'
 
 
