@@ -7,7 +7,7 @@ Table of contents:
 
 ## Newly introduced keys
 
-earliest version tested: OS 10.5  
+earliest version tested: OS 10.0  
 latest version tested: macOS 26
 
 Shows the first OS version which renders the icon correctly.  
@@ -19,7 +19,7 @@ Shows the first OS version which renders the icon correctly.
 
  OS   | new keys
 ------|----------
-10.5  | ih32, il32, is32, it32
+10.0  | ih32, il32, is32, it32
 10.6  | ic08, ic09
 10.7  | ic07, icp4, icp5
 10.13 | ic10, ic11, ic12, ic13, ic14, icsB
@@ -30,21 +30,21 @@ Shows the first OS version which renders the icon correctly.
 
  key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
 :---:|:----:|-------|-------|-------|-------|-------|-----------
-is32 |   16 |       |       |       | 10.5  |       |       
+is32 |   16 |       |       |       | 10.0  |       |       
 icp4 |   16 |       |       |       | 10.7  |       |       
 ic04 |   16 |       |       |       |       | 11    | 10.14 
 icsb |   18 |       |       |       |       |       |       
 sb24 |   24 | 10.15 | 10.15 | 10.15 |       |       |       
-il32 |   32 |       |       |       | 10.5  |       |       
+il32 |   32 |       |       |       | 10.0  |       |       
 icp5 |   32 |       |       |       | 10.7  |       |       
 ic11 |   32 | 10.13 | 10.13 | 10.13 |       |       |       
 ic05 |   32 |       |       |       |       | 11    | 10.14 
 icsB |   36 | 10.13 | 10.13 | 10.13 |       |       |       
-ih32 |   48 |       |       |       | 10.5  |       |       
+ih32 |   48 |       |       |       | 10.0  |       |       
 icp6 |   48 |       |       |       |       |       |       
 SB24 |   48 | 10.15 | 10.15 | 10.15 |       |       |       
 ic12 |   64 | 10.13 | 10.13 | 10.13 |       |       |       
-it32 |  128 |       |       |       | 10.5  |       |       
+it32 |  128 |       |       |       | 10.0  |       |       
 ic07 |  128 | 10.7  | 10.7  | 10.7  |       |       |       
 ic08 |  256 | 10.6  | 10.6  | 10.6  |       |       |       
 ic13 |  256 | 10.13 | 10.13 | 10.13 |       |       |       
@@ -57,7 +57,8 @@ ic10 | 1024 | 10.13 | 10.13 | 10.13 |       |       |
 
  OS   | new keys
 ------|----------
-10.5  | ic08, ic09, ih32, il32, is32, it32
+10.0  | ih32, il32, is32, it32
+10.5  | ic08, ic09
 10.6  | ic08, ic09, ic10
 10.7  | ic07, ic11, ic12, ic13, ic14, icp4, icp5, icp6, icsB, icsb, ih32, il32, is32, it32
 10.14 | ic04, ic05
@@ -67,21 +68,21 @@ ic10 | 1024 | 10.13 | 10.13 | 10.13 |       |       |
 
  key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
 :---:|:----:|-------|-------|-------|-------|-------|-----------
-is32 |   16 | 10.7  | 10.7  | 10.7  | 10.5  |       |       
+is32 |   16 | 10.7  | 10.7  | 10.7  | 10.0  |       |       
 icp4 |   16 | 10.7  | 10.7  | 10.7  | 10.7  |       |       
 ic04 |   16 | 10.14 | 10.14 | 10.14 |       | 11    | 10.14 
 icsb |   18 | 10.7  | 10.7  | 10.7  |       |       |       
 sb24 |   24 | 10.15 | 10.15 | 10.15 |       |       |       
-il32 |   32 | 10.7  | 10.7  | 10.7  | 10.5  |       |       
+il32 |   32 | 10.7  | 10.7  | 10.7  | 10.0  |       |       
 icp5 |   32 | 10.7  | 10.7  | 10.7  | 10.7  |       |       
 ic11 |   32 | 10.7  | 10.7  | 10.7  |       |       |       
 ic05 |   32 | 10.14 | 10.14 | 10.14 |       | 11    | 10.14 
 icsB |   36 | 10.7  | 10.7  | 10.7  |       |       |       
-ih32 |   48 | 10.7  | 10.7  | 10.7  | 10.5  |       |       
+ih32 |   48 | 10.7  | 10.7  | 10.7  | 10.0  |       |       
 icp6 |   48 | 10.7  | 10.7  | 10.7  |       |       |       
 SB24 |   48 | 10.15 | 10.15 | 10.15 |       |       |       
 ic12 |   64 | 10.7  | 10.7  | 10.7  |       |       |       
-it32 |  128 | 10.7  | 10.7  | 10.7  | 10.5  |       |       
+it32 |  128 | 10.7  | 10.7  | 10.7  | 10.0  |       |       
 ic07 |  128 | 10.7  | 10.7  | 10.7  |       |       |       
 ic08 |  256 | 10.5  | 10.5  | 10.6  |       |       |       
 ic13 |  256 | 10.7  | 10.7  | 10.7  |       |       |       
@@ -94,7 +95,8 @@ ic10 | 1024 | 10.6  | 10.6  | 10.6  |       |       |
 
  OS   | new keys
 ------|----------
-10.5  | icp4, icp5, icp6, ih32, il32, is32, it32
+10.0  | ih32, il32, is32, it32
+10.5  | icp4, icp5, icp6, it32
 10.6  | ic07, ic08, ic09
 10.7  | ic05, icp4, icp5, icsb
 10.13 | ic04, ic10, ic11, ic12, ic13, ic14, icsB
@@ -103,21 +105,21 @@ ic10 | 1024 | 10.6  | 10.6  | 10.6  |       |       |
 
  key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
 :---:|:----:|-------|-------|-------|-------|-------|-----------
-is32 |   16 |       |       |       | 10.5  |       |       
+is32 |   16 |       |       |       | 10.0  |       |       
 icp4 |   16 |       |       |       | 10.7  | 10.5  | 10.5  
 ic04 |   16 |       |       |       |       | 10.13 | 10.13 
 icsb |   18 |       |       |       |       | 10.7  |       
 sb24 |   24 | 10.15 | 10.15 | 10.15 |       |       |       
-il32 |   32 |       |       |       | 10.5  |       |       
+il32 |   32 |       |       |       | 10.0  |       |       
 icp5 |   32 |       |       |       | 10.7  | 10.5  | 10.5  
 ic11 |   32 | 10.13 | 10.13 | 10.13 |       |       |       
 ic05 |   32 |       |       |       |       | 10.7  | 10.7  
 icsB |   36 | 10.13 | 10.13 | 10.13 |       |       |       
-ih32 |   48 |       |       |       | 10.5  |       |       
+ih32 |   48 |       |       |       | 10.0  |       |       
 icp6 |   48 |       |       |       |       | 10.5  | 10.5  
 SB24 |   48 | 10.15 | 10.15 | 10.15 |       |       |       
 ic12 |   64 | 10.13 | 10.13 | 10.13 |       |       |       
-it32 |  128 |       |       |       | 10.5  |       | 10.5  
+it32 |  128 |       |       |       | 10.0  |       | 10.5  
 ic07 |  128 | 10.6  | 10.6  | 10.6  |       |       |       
 ic08 |  256 | 10.6  | 10.6  | 10.6  |       |       |       
 ic13 |  256 | 10.13 | 10.13 | 10.13 |       |       |       
@@ -138,12 +140,153 @@ Legend:
 
 This is a combined table. Showing results of both, icns and app rendering.
 If a cell contains only one emoji, the result is valid for both. If the cell is
-split, the first emoji means icns rendering and the second emoji stands for app
-rendering (the same icns file but bundled inside an app bundle).
+split up, the first emoji applies to icns rendering and the second emoji to app
+rendering (it is the same icns file, just put inside an app bundle).
 
 ❌/✅ means the icon cannot be rendered in a plain `icns` file but renders fine
 when used inside an `.app` bundle (the very same icns file!). Likewise, ✅/❌
 renders standalone icns files fine but fails when bundled in an app.
+
+Empty cells were not tested at all. E.g., for `argb+mask` only sizes 16, 32,
+48, and 128 are relevant because no other mask-sizes exist. Early OS versions
+skip some keys because generating a preview gets progressively harder the older
+it gets. Though I did preview all keys in 10.3 and 10.4 (even if the cells are
+empty) and they are indeed non-rendering.
+
+
+### macOS 10.0
+
+ key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
+:---:|:----:|:-----:|:-----:|:-----:|:-----:|:-----:|:---------:
+is32 |   16 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp4 |   16 |       |       |       |       |       |       
+ic04 |   16 |       |       |       |       |       |       
+icsb |   18 |       |       |       |       |       |       
+sb24 |   24 |       |       |       |       |       |       
+il32 |   32 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp5 |   32 |       |       |       |       |       |       
+ic11 |   32 |       |       |       |       |       |       
+ic05 |   32 |       |       |       |       |       |       
+icsB |   36 |       |       |       |       |       |       
+ih32 |   48 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp6 |   48 |       |       |       |       |       |       
+SB24 |   48 |       |       |       |       |       |       
+ic12 |   64 |       |       |       |       |       |       
+it32 |  128 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+ic07 |  128 |       |       |       |       |       |       
+ic08 |  256 |       |       |       |       |       |       
+ic13 |  256 |       |       |       |       |       |       
+ic09 |  512 |       |       |       |       |       |       
+ic14 |  512 |       |       |       |       |       |       
+ic10 | 1024 |       |       |       |       |       |       
+
+
+### macOS 10.1
+
+ key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
+:---:|:----:|:-----:|:-----:|:-----:|:-----:|:-----:|:---------:
+is32 |   16 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp4 |   16 |       |       |       |       |       |       
+ic04 |   16 |       |       |       |       |       |       
+icsb |   18 |       |       |       |       |       |       
+sb24 |   24 |       |       |       |       |       |       
+il32 |   32 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp5 |   32 |       |       |       |       |       |       
+ic11 |   32 |       |       |       |       |       |       
+ic05 |   32 |       |       |       |       |       |       
+icsB |   36 |       |       |       |       |       |       
+ih32 |   48 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp6 |   48 |       |       |       |       |       |       
+SB24 |   48 |       |       |       |       |       |       
+ic12 |   64 |       |       |       |       |       |       
+it32 |  128 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+ic07 |  128 |       |       |       |       |       |       
+ic08 |  256 |       |       |       |       |       |       
+ic13 |  256 |       |       |       |       |       |       
+ic09 |  512 |       |       |       |       |       |       
+ic14 |  512 |       |       |       |       |       |       
+ic10 | 1024 |       |       |       |       |       |       
+
+
+### macOS 10.2
+
+ key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
+:---:|:----:|:-----:|:-----:|:-----:|:-----:|:-----:|:---------:
+is32 |   16 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp4 |   16 |       |       |       |       |       |       
+ic04 |   16 |       |       |       |       |       |       
+icsb |   18 |       |       |       |       |       |       
+sb24 |   24 |       |       |       |       |       |       
+il32 |   32 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp5 |   32 |       |       |       |       |       |       
+ic11 |   32 |       |       |       |       |       |       
+ic05 |   32 |       |       |       |       |       |       
+icsB |   36 |       |       |       |       |       |       
+ih32 |   48 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp6 |   48 |       |       |       |       |       |       
+SB24 |   48 |       |       |       |       |       |       
+ic12 |   64 |       |       |       |       |       |       
+it32 |  128 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+ic07 |  128 |       |       |       |       |       |       
+ic08 |  256 |       |       |       |       |       |       
+ic13 |  256 |       |       |       |       |       |       
+ic09 |  512 |       |       |       |       |       |       
+ic14 |  512 |       |       |       |       |       |       
+ic10 | 1024 |       |       |       |       |       |       
+
+
+### macOS 10.3
+
+ key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
+:---:|:----:|:-----:|:-----:|:-----:|:-----:|:-----:|:---------:
+is32 |   16 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp4 |   16 |       |       |       |       |       |       
+ic04 |   16 |       |       |       |       |       |       
+icsb |   18 |       |       |       |       |       |       
+sb24 |   24 |       |       |       |       |       |       
+il32 |   32 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp5 |   32 |       |       |       |       |       |       
+ic11 |   32 |       |       |       |       |       |       
+ic05 |   32 |       |       |       |       |       |       
+icsB |   36 |       |       |       |       |       |       
+ih32 |   48 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp6 |   48 |       |       |       |       |       |       
+SB24 |   48 |       |       |       |       |       |       
+ic12 |   64 |       |       |       |       |       |       
+it32 |  128 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+ic07 |  128 |       |       |       |       |       |       
+ic08 |  256 |       |       |       |       |       |       
+ic13 |  256 |       |       |       |       |       |       
+ic09 |  512 |       |       |       |       |       |       
+ic14 |  512 |       |       |       |       |       |       
+ic10 | 1024 |       |       |       |       |       |       
+
+
+### macOS 10.4
+
+ key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
+:---:|:----:|:-----:|:-----:|:-----:|:-----:|:-----:|:---------:
+is32 |   16 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp4 |   16 | ❌    | ❌    | ❌    | ❌    | ❌    | ❌    
+ic04 |   16 |       |       |       |       |       |       
+icsb |   18 |       |       |       |       |       |       
+sb24 |   24 |       |       |       |       |       |       
+il32 |   32 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp5 |   32 | ❌    | ❌    | ❌    | ❌    | ❌    | ❌    
+ic11 |   32 |       |       |       |       |       |       
+ic05 |   32 |       |       |       |       |       |       
+icsB |   36 |       |       |       |       |       |       
+ih32 |   48 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+icp6 |   48 | ❌    | ❌    | ❌    | ❌    | ❌    | ❌    
+SB24 |   48 |       |       |       |       |       |       
+ic12 |   64 |       |       |       |       |       |       
+it32 |  128 | ❌    | ❌    | ❌    | ✅    | ❌    | ❌    
+ic07 |  128 | ❌    | ❌    | ❌    | ❌    | ❌    | ❌    
+ic08 |  256 | ❌    | ❌    | ❌    | ❌    | ❌    |       
+ic13 |  256 |       |       |       |       |       |       
+ic09 |  512 | ❌    | ❌    | ❌    | ❌    | ❌    |       
+ic14 |  512 |       |       |       |       |       |       
+ic10 | 1024 | ❌    | ❌    | ❌    | ❌    | ❌    |       
 
 
 ### macOS 10.5
