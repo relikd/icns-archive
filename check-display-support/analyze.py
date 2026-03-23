@@ -155,10 +155,17 @@ class DB:
                     [reply, os_ver, typ, key])
         self.save()
 
+    def cleanup(self):  # type: () -> None
+        self.cur.execute('''
+            DELETE FROM tbl
+            WHERE typ='argb+mask' AND size NOT IN (16, 32, 48, 128)
+        ''')
+        self.save()
+
     def select(self, os_ver, typ, key):  # type: (str,str,str)->tuple[int,int]
         return self.cur.execute('''
             SELECT icns, app FROM tbl WHERE os=? AND typ=? AND key=?
-        ''', (os_ver, typ, key)).fetchone()
+        ''', (os_ver, typ, key)).fetchone() or (Enum.NEVER, Enum.NEVER)
 
     def good_fields(self, group):  # type: (str) -> list[tuple[str, str, str]]
         ''' Return `(key, typ, os-list)` where icns and/or app are good. '''
@@ -202,7 +209,8 @@ def printable(num):  # type: (int) -> str
 
 
 def matches_expectation(icns, app):  # type: (int, int) -> bool
-    return (app == Enum.MAN_GOOD and icns >= Enum.MAN_GOOD) or \
+    return icns == app or \
+        (app == Enum.MAN_GOOD and icns >= Enum.MAN_GOOD) or \
         (app == Enum.MAN_WRONG and icns <= Enum.MAN_WRONG)
 
 
@@ -340,4 +348,5 @@ if __name__ == '__main__':
     db.pre_populate(sorted_os(os.listdir(root)))
     db.populate_automatically(root)
     db.populate_manually(root)
+    db.cleanup()
     write_markdown(db, db_path + '-results.md')
