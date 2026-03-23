@@ -93,9 +93,9 @@ def m_crop_dir(indir, rect):  # type: (str, list[int]) -> None
     for base, dirs, files in os.walk(indir):
         for fn in files:
             name, ext = fn.split('.', 1)
-            if ext == 'png':  # and name + '.crop.png' not in files:
+            if ext in ['png', 'tiff']:
                 pth = os.path.join(base, name)
-                Image.open(pth + '.png').crop(rect).save(pth + '.crop.png')
+                Image.open(pth + '.' + ext).crop(rect).save(pth + '.crop.png')
 
 
 if __name__ == '__main__':
