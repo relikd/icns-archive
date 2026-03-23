@@ -330,9 +330,16 @@ def write_markdown(db, outfile):  # type: (DB, str) -> None
         fp.write('''# Rendering Analysis
 
 Table of contents:
-- [Newly introduced keys](#newly-introduced-keys)
 - [Detailed render results](#detailed-render-results)
+- [Newly introduced keys](#newly-introduced-keys)
 ''')
+        fp.write('\n\n## Detailed render results\n')
+        fp.write(desc_detailed())
+
+        for os_ver in os_list:
+            fp.write('\n\n### macOS %s' % os_ver)
+            fp.write('\n\n' + tbl_os_detailed(db, os_ver))
+
         fp.write('\n\n## Newly introduced keys\n')
         fp.write(desc_timeline(os_list[0], os_list[-1]))
 
@@ -340,13 +347,6 @@ Table of contents:
             fp.write('\n\n## Render success: %s' % group)
             fp.write('\n\n' + tbl_timeline_tldr(db, group, os_list))
             fp.write('\n\n' + tbl_timeline_full(db, group))
-
-        fp.write('\n\n## Detailed render results\n')
-        fp.write(desc_detailed())
-
-        for os_ver in os_list:
-            fp.write('\n\n### macOS %s' % os_ver)
-            fp.write('\n\n' + tbl_os_detailed(db, os_ver))
 
 
 #######################################
