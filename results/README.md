@@ -21,6 +21,7 @@ You can query the database manually to see specifics (`fake=0`).
   This is wrong on a technical level.
   For one, these transparency masks are reserved for the RGB fields `is32` and `il32`
   — and ARGB already contains its own transparency mask.
+- There is no `ic06` key. Tested all sizes on 10.12 and 15 (both, app and icns).
 - OS 9.2.2 (and earlier) has no support for `.icns` files.
   Neither is there a Preview app to view icns files, nor has is support for `.app` bundles.
   PowerPC apps *can* include icons but I couldn't find a quick-fix to apply a custom icon for a given app.
