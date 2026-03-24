@@ -1,4 +1,4 @@
-# Analysis results
+# Compatibility of macOS icon files – Analysis results
 
 
 ## Part 1

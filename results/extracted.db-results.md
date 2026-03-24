@@ -1,4 +1,4 @@
-# Analysis Results
+# Icons extracted from macOS disk image – Analysis
 
 ## Data format usage
 

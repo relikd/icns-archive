@@ -336,7 +336,7 @@ def tbl_os_detailed(db, os_ver):  # type: (DB, str) -> str
 def write_markdown(db, outfile):  # type: (DB, str) -> None
     os_list = sorted_os(db.all_os())
     with open(outfile, 'w') as fp:
-        fp.write('''# Rendering Analysis
+        fp.write('''# Rendering of .icns and .app icons in macOS – Analysis
 
 Table of contents:
 - [Detailed render results](#detailed-render-results)

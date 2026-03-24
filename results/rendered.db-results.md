@@ -1,4 +1,4 @@
-# Rendering Analysis
+# Rendering of .icns and .app icons in macOS – Analysis
 
 Table of contents:
 - [Detailed render results](#detailed-render-results)

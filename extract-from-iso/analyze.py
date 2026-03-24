@@ -232,7 +232,7 @@ def evaluate(db, outfile):  # type: (DB, str) -> None
                db.cur.execute('SELECT ROWID, name FROM os').fetchall()]
 
     with open(outfile, 'w') as fp:
-        fp.write('''# Analysis Results
+        fp.write('''# Icons extracted from macOS disk image – Analysis
 
 ## Data format usage
 
