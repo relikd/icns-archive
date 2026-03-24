@@ -167,7 +167,7 @@ class DB:
                 'il32', 'is32', 'it32');
 
             DELETE FROM tbl
-            WHERE os IN ('10.0', '10.1', '10.2', '10.3')
+            WHERE os IN ('9.2', '10.0', '10.1', '10.2', '10.3')
                 AND key NOT IN ('ih32', 'il32', 'is32', 'it32');
         ''')
         self.save()

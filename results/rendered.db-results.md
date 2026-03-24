@@ -31,6 +31,18 @@ it gets. Though I did preview all keys in 10.3 and 10.4 (even if the cells are
 empty) and they are indeed non-rendering.
 
 
+### macOS 9.2
+
+ key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
+:---:|:----:|:-----:|:-----:|:-----:|:-----:|:-----:|:---------:
+is32 |   16 | ❌    | ❌    | ❌    | ❌    | ❌    | ❌    
+il32 |   32 | ❌    | ❌    | ❌    | ❌    | ❌    | ❌    
+ih32 |   48 | ❌    | ❌    | ❌    | ❌    | ❌    | ❌    
+it32 |  128 | ❌    | ❌    | ❌    | ❌    | ❌    | ❌    
+
+*omitted*: icp4, ic04, icsb, sb24, icp5, ic11, ic05, icsB, icp6, SB24, ic12, ic07, ic08, ic13, ic09, ic14, ic10
+
+
 ### macOS 10.0
 
  key | size | jp2   | jpf   | png   | rgb   | argb  | argb+mask
@@ -559,7 +571,7 @@ ic10 | 1024 | ✅    | ✅    | ✅    | ❌    | ❌    |
 
 ## Newly introduced keys
 
-earliest version tested: OS 10.0  
+earliest version tested: OS 9.2  
 latest version tested: macOS 26
 
 Shows the first OS version which renders the icon correctly.  
