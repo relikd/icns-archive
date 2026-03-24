@@ -385,4 +385,4 @@ if __name__ == '__main__':
     db.populate_automatically(root)
     db.populate_manually(root)
     db.cleanup()
-    write_markdown(db, db_path + '-results.md')
+    write_markdown(db, os.path.splitext(db_path)[0] + '-report.md')

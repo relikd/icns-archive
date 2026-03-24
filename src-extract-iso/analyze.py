@@ -284,5 +284,5 @@ if __name__ == '__main__':
 
     db = DB(db_path)
     parse_archive(db, root)
-    evaluate(db, db_path + '-results.md')
+    evaluate(db, os.path.splitext(db_path)[0] + '-report.md')
     db.save()

@@ -5,10 +5,13 @@
 
 - Icns files were first used in OS 8.5. Before that, icons were stored directly in Resource Fork fields.
 - The `ICON`-key was never used in icns files (only in Resource Forks).
-- A detailed analysis of which key was used in which macOS version can be found at [extracted.db-results.md](./extracted.db-results.md) ¹
+- A detailed analysis of which key was used in which macOS version can be found at [extracted-report.md](./extracted-report.md) ¹
 
 ¹ The analysis-results-table includes both, actual icns files and Resource Fork icons.
 You can query the database manually to see specifics (`fake=0`).
+
+__Note:__ the key column stores binary keys.
+If you want to query a specific key, use the proper notation (e.g., `x'69636c38'` for "icl8").
 
 
 ## Part 2
@@ -25,7 +28,7 @@ You can query the database manually to see specifics (`fake=0`).
 - OS 9.2.2 (and earlier) has no support for `.icns` files.
   Neither is there a Preview app to view icns files, nor has is support for `.app` bundles.
   PowerPC apps *can* include icons but I couldn't find a quick-fix to apply a custom icon for a given app.
-- A detailed analysis can be found at [rendered.db-results.md](./rendered.db-results.md)
+- A detailed analysis can be found at [rendered-report.md](./rendered-report.md)
 
 Curiously, on my local machine (macOS 15) I cannot render `jp2` images, only `jpf`.
 But when tested in a macOS 15 VM, `jp2` icons rendered fine.
