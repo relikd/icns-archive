@@ -34,7 +34,7 @@ Assumptions:
 - Support for a new type and usage of a new type happen in the same OS version.
 - We focus on Apple provided software and not third parties because Apple knows best how to create/use icns files. Other developers may add types which weren't supposed to be used (or misuse them).
 
-=> source code in [src-extract-iso](./src-extract-iso/), results in [icon-archive](./icon-archive/)
+=> source code in [src-extract-iso](./src-extract-iso/), results in [collection-extracted](./collection-extracted/)
 
 
 ### Part 2
@@ -47,4 +47,4 @@ Assumptions:
 - No error were made during test-icon creation (*fingers crossed*)
 - Since we try this on the latest update version (per OS), we may falsely declare support for a new type (e.g., no support in 10.5.1 but added in 10.5.3). Arguably, users will likely update to the latest patch version even if they stick to a specific major release.
 
-=> source code in [rendered-src](./rendered-src/), results in [rendered-archive](./rendered-archive/)
+=> source code in [src-render](./src-render/), results in [collection-rendered](./collection-rendered/)

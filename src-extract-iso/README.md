@@ -8,7 +8,7 @@ __Warning:__ the disk image will be deleted in the process. Make a copy!
 
     a) `iso-deep-unpack` extracts all package-like formats and repeats the process for all nested packages.
 
-    b) `rsrc-to-icns.py` will find all `.icns` files inside Resource Forks and extract them inplace. See Resource Fork disclaimer in [icon-archive/README.md](../icon-archive/README.md).
+    b) `rsrc-to-icns.py` will find all `.icns` files inside Resource Forks and extract them inplace. See Resource Fork disclaimer in [collection-extracted/README.md](../collection-extracted/README.md).
 
 
 ## Analyze

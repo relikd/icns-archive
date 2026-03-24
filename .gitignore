@@ -1,4 +1,4 @@
 .DS_Store
 src-render/out-variants/
 src-render/out-rendered/
-icon-archive/**/*.zip
+collection-extracted/**/*.zip
