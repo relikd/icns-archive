@@ -1,4 +1,4 @@
 .DS_Store
-check-display-support/out-variants/
-check-display-support/out-rendered/
-
+src-render/out-variants/
+src-render/out-rendered/
+icon-archive/**/*.zip
