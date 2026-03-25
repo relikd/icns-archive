@@ -104,14 +104,14 @@ def determine_data(key, data):  # type: (bytes, bytes) -> str
     return ''
 
 
-def mini_parser(data):  # type: (bytes) -> Iterator[tuple[bytes, str]]
+def mini_parser(data):  # type: (bytes) -> Iterator[tuple[bytes,str,int,bytes]]
     ''' Iterate over icns header fields '''
     off = 0
     while off < len(data):
         key, size = struct.unpack('>4sI', data[off:off + 8])
         sample = data[off + 8:off + 16]
         typ = determine_data(key, sample)
-        yield key, typ
+        yield key, typ, size - 8, data[off + 8:off + size]
         if typ == 'icns':
             for sub in mini_parser(data[off + 8:off + size]):
                 yield sub
@@ -141,7 +141,7 @@ def parse_file(data, fname):  # type: (bytes, str) -> dict[bytes, set[str]]
         print('WARN: length mismatch %d != %d in %s'
               % (size, len(data), fname), file=sys.stderr)
     # iter fields
-    for key, kind in mini_parser(data[8:size]):
+    for key, kind, _, _ in mini_parser(data[8:size]):
         if key not in KNOWN:
             print('!!!: unexpected key %r in %s' % (key, fname),
                   file=sys.stderr)
@@ -271,6 +271,87 @@ key   |%s
             fp.write('\n')
 
 
+#######################################
+#
+# In-depth analysis
+#
+#######################################
+
+def query_files_with_keys(db, keys):
+    # type: (DB, list[bytes]) -> dict[str, list[str]]
+    ''' Returns `{zip-file-path, [icns-files-inside-zip]}` '''
+    rv = dict()  # type: dict[str, list[str]]
+    for path, in db.cur.execute('''
+        SELECT DISTINCT name from entries
+        INNER JOIN files on file = files.ROWID
+        WHERE key IN (%s)
+    ''' % (',?' * len(keys))[1:], keys):
+        zipname, filename = os.path.split(path)
+        rv.setdefault(zipname, []).append(filename)
+    return rv
+
+
+def iter_keys(db, root, keys):
+    # type: (DB, str, list[bytes]) -> Iterator[tuple[str, bytes, int, bytes]]
+    ''' Yield tuples of `(filename, key, size, data)` '''
+    for zipfile, files in query_files_with_keys(db, keys).items():
+        with ZipFile(os.path.join(root, zipfile)) as zf:
+            for fn in files:
+                with zf.open(fn) as fp:
+                    data = fp.read()
+                # parse
+                head, size = struct.unpack('>4sI', data[:8])
+                assert head == b'icns'
+                for key, _, sz, icondata in mini_parser(data[8:size]):
+                    if key in keys:
+                        yield zipfile + '/' + fn, key, sz, icondata
+
+
+def anaylze_it32_header(db, root):  # type: (DB, str) -> None
+    ''' Validate all it32 fields start with four zero bytes header. '''
+    for fn, _, _, data in iter_keys(db, root, [b'it32']):
+        if data[:4] != b'\x00\x00\x00\x00':
+            print('Non-zero byte it32 header %r (%s)' % (data[:4], fn))
+
+
+def anaylze_compression(db, root):  # type: (DB, str) -> None
+    ''' Validate all RGB fields use compression ... always! '''
+    expect = {
+        b'is32': 768, b'il32': 3072, b'ih32': 6912, b'it32': 49152,
+        b'icp4': 1024, b'icp5': 4096,
+    }
+    for fn, key, size, _ in iter_keys(db, root, list(expect)):
+        if size == expect[key]:
+            print('Size limit equal %d = %d (%r, %s)' % (
+                size, expect[key], key, fn))
+        if size > expect[key]:
+            print('Size limit exceeds %d > %d (%r, %s)' % (
+                size, expect[key], key, fn))
+
+
+def anaylze_unique_name(db, root):  # type: (DB, str) -> None
+    ''' Find all "name" fields. '''
+    unique = set()
+    for fn, _, _, data in iter_keys(db, root, [b'name']):
+        unique.add(data)
+        print('%r (%s)' % (data, fn))
+    print('unique:')
+    print(sorted(unique))
+
+
+def anaylze_unique_icnV(db, root):  # type: (DB, str) -> None
+    ''' Find all "name" fields. '''
+    unique = set()
+    for fn, _, _, data in iter_keys(db, root, [b'icnV']):
+        assert len(data) == 4, 'icnV length != 4'
+        ver_f = struct.unpack('>f', data)[0]
+        ver_s = '%.1f' % ver_f
+        unique.add(ver_s)
+        print('%s (%s)' % (ver_s, fn))
+    print('unique:')
+    print(sorted(unique))
+
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print('usage: %s <src-dir> <db-path>' % os.path.basename(sys.argv[0]))
@@ -283,6 +364,15 @@ if __name__ == '__main__':
         exit(1)
 
     db = DB(db_path)
+
+    IN_DEPTH = False
+    if IN_DEPTH:
+        # anaylze_it32_header(db, root)
+        # anaylze_compression(db, root)
+        # anaylze_unique_name(db, root)
+        # anaylze_unique_icnV(db, root)
+        exit(0)
+
     parse_archive(db, root)
     evaluate(db, os.path.splitext(db_path)[0] + '-report.md')
     db.save()
