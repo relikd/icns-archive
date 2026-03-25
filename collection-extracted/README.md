@@ -1,6 +1,6 @@
-# .icns Archive
+# MacOS .icns collection
 
-Download files from [archive.org](https://archive.org/details/macos-icns-archive) and place in this directory.
+Download files from [archive.org](https://archive.org/details/macos-icns-archive) or [github](https://github.com/relikd/icns-collection) and place in this directory.
 
 
 ## A note on Resource Forks
