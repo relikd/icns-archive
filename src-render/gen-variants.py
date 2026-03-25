@@ -52,21 +52,22 @@ def generate_variants():  # type: () -> None
         makedir(os.path.join('out-variants', 'icns', ext))
     try:
         Zip = ZipFile('assets/raw-files.zip')
-        for s, keys in ICNS_TYPES.items():
-            print('generate icns for %dx%d' % (s, s))
+        print('generate variants: ', end='')
+        for s, key in ICNS_TYPES:
+            print('.', end='')
             for ext in DATA_TYPES:
                 if ext == 'argb+mask' and s not in [16, 32, 48, 128]:
                     continue
                 raw = Zip.read('%dx%d.%s' % (s, s, ext.split('+')[0]))
-                for key in keys:
-                    if key == 'it32' and ext in ['rgb', 'rgbu']:
-                        data = byte_(0x00, 4) + raw
-                    else:
-                        data = raw
-                    fn = 'out-variants/icns/%s/%d-%s.icns' % (ext, s, key)
-                    mask = mask_for_size(s, ext)
-                    write_icns(fn, [(key, data)] + mask)
-                    make_app_wrapper(fn)
+                if key == 'it32' and ext in ['rgb', 'rgbu']:
+                    data = byte_(0x00, 4) + raw
+                else:
+                    data = raw
+                fn = 'out-variants/icns/%s/%d-%s.icns' % (ext, s, key)
+                mask = mask_for_size(s, ext)
+                write_icns(fn, [(key, data)] + mask)
+                make_app_wrapper(fn)
+        print(' done.')
     finally:
         Zip.close()
 

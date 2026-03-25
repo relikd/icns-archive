@@ -3,8 +3,10 @@
 import os
 import sys
 import sqlite3
-from lib import DATA_TYPES, ICNS_TYPES, ICNS_TYPES_SET
+from lib import DATA_TYPES, ICNS_TYPES
 from PIL import Image
+
+ICNS_TYPES_SET = set(x for _, x in ICNS_TYPES)
 
 
 #######################################
@@ -90,10 +92,7 @@ class DB:
     def add(self, os_ver):  # type: (str) -> None
         self.cur.executemany(
             'INSERT INTO tbl (os, typ, size, key) VALUES (?, ?, ?, ?)',
-            [(os_ver, t, s, k)
-                for t in DATA_TYPES
-                for s, keys in ICNS_TYPES.items()
-                for k in keys])
+            [(os_ver, t, s, k) for t in DATA_TYPES for s, k in ICNS_TYPES])
 
     def remaining_icns(self):  # type: () -> list[tuple[str,str,int,str]]
         return list(self.cur.execute(
@@ -266,17 +265,16 @@ def tbl_timeline_full(db, group):  # type: (DB, str) -> str
     usage = db.good_fields(group)
 
     txt = tbl_head(columns, 5)
-    for sz, keys in ICNS_TYPES.items():
-        for key in keys:
-            txt += '\n%s | %4d ' % (key, sz)
-            for typ in columns:
-                os_range = next((sorted_os(o.split(','))
-                                for k, t, o in usage
-                                if k == key and t == typ), None)
-                if os_range is None:
-                    txt += '|       '
-                else:
-                    txt += '| %s ' % os_range[0].ljust(5)
+    for sz, key in ICNS_TYPES:
+        txt += '\n%s | %4d ' % (key, sz)
+        for typ in columns:
+            os_range = next((sorted_os(o.split(','))
+                            for k, t, o in usage
+                            if k == key and t == typ), None)
+            if os_range is None:
+                txt += '|       '
+            else:
+                txt += '| %s ' % os_range[0].ljust(5)
     return txt + '\n'
 
 
@@ -312,22 +310,21 @@ def tbl_os_detailed(db, os_ver):  # type: (DB, str) -> str
 
     txt = tbl_head(columns, 5, center=True)
     omitted = []
-    for sz, keys in ICNS_TYPES.items():
-        for key in keys:
-            pairs = [db.select(os_ver, typ, key) for typ in columns]
+    for sz, key in ICNS_TYPES:
+        pairs = [db.select(os_ver, typ, key) for typ in columns]
 
-            # skip keys/lines with no test result
-            if all(x == (Enum.NEVER, Enum.NEVER) for x in pairs):
-                omitted.append(key)
-                continue
+        # skip keys/lines with no test result
+        if all(x == (Enum.NEVER, Enum.NEVER) for x in pairs):
+            omitted.append(key)
+            continue
 
-            txt += '\n%s | %4d ' % (key, sz)
-            for icns, app in pairs:
-                txt += '| ' + printable(icns)
-                if matches_expectation(icns, app):
-                    txt += '    '
-                else:
-                    txt += '/' + printable(app) + ' '
+        txt += '\n%s | %4d ' % (key, sz)
+        for icns, app in pairs:
+            txt += '| ' + printable(icns)
+            if matches_expectation(icns, app):
+                txt += '    '
+            else:
+                txt += '/' + printable(app) + ' '
     if omitted:
         txt += '\n\n*omitted*: ' + ', '.join(omitted)
     return txt + '\n'

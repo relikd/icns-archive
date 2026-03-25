@@ -2,22 +2,19 @@
 import os
 import struct  # pack
 
-SIZES = [16, 18, 24, 32, 36, 48, 64, 128, 256, 512, 1024]
 DATA_TYPES = ['jp2', 'jpf', 'png', 'rgb', 'argb', 'argb+mask', 'argbu', 'rgbu']
-ICNS_TYPES = {
-    16: ['is32', 'icp4', 'ic04'],
-    18: ['icsb'],
-    24: ['sb24'],
-    32: ['il32', 'icp5', 'ic11', 'ic05'],
-    36: ['icsB'],
-    48: ['ih32', 'icp6', 'SB24'],
-    64: ['ic12'],
-    128: ['it32', 'ic07'],
-    256: ['ic08', 'ic13'],
-    512: ['ic09', 'ic14'],
-    1024: ['ic10'],
-}
-ICNS_TYPES_SET = set(y for x in ICNS_TYPES.values() for y in x)
+ICNS_TYPES = [
+    # 24-bit RGB
+    (16, 'is32'), (32, 'il32'), (48, 'ih32'), (128, 'it32'),
+    (16, 'icp4'), (32, 'icp5'), (48, 'icp6'),
+    # ARGB
+    (16, 'ic04'), (32, 'ic05'), (18, 'icsb'),
+    # PNG, JPG2000
+    (36, 'icsB'), (24, 'sb24'), (48, 'SB24'),
+    (128, 'ic07'), (256, 'ic08'), (512, 'ic09'), (1024, 'ic10'),
+    (32, 'ic11'), (64, 'ic12'), (256, 'ic13'), (512, 'ic14'),
+]
+SIZES = sorted(set(x for x, _ in ICNS_TYPES))
 
 
 def makedir(fname):  # type: (str) -> None

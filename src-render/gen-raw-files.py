@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from lib import SIZES, makedir, byte_, bytes_
-from verify import test_file
+from analyze import test_file, Enum
 from PIL import Image
 
 
@@ -110,10 +110,10 @@ def generate():  # type: () -> None
         im = Image.new('RGB', (s, s))
         im.putdata([px(i) for i in range(s*s)])
         im.save(fname + '.png')
-        assert test_file(fname + '.png') == 0
+        assert test_file(fname + '.png') == Enum.PERFECT
         # JPEG2000
         im.save(fname + '.jpf')
-        assert test_file(fname + '.jpf') == 0
+        assert test_file(fname + '.jpf') == Enum.PERFECT
 
 
 if __name__ == '__main__':
