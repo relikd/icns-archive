@@ -29,18 +29,23 @@ close_finder() {
 	FINDER_OPEN=false
 }
 
-# $1: destination-dir (type), $2: source-files (.app)
+# $1: destination-dir (type), $2: source-files (.app), $3: is_retina
 render_quicklook() {
 	dst_dir=$1
 	src=$2
+	retina=$3
 	name=$(basename "$src")
 	dst_file="$dst_dir/$name.png"
 	# skip already existing
 	if [ -e "$dst_file" ]; then
 		return
 	fi
-	mkdir -p "$dst_dir"
-	qlmanage -x -t -s "${name%%-*}" "$src" -o "$dst_dir" > /dev/null
+	# retina scaling
+	size=${name%%-*}
+	if [ "$retina" = true ]; then 
+		size=$((size*2))
+	fi
+	qlmanage -x -t -s "$size" "$src" -o "$dst_dir" > /dev/null
 	if [ ! -e "$dst_file" ]; then
 		touch "$dst_file"
 	fi
@@ -51,9 +56,18 @@ render_all_icns() {
 		typ=$(basename "$IN")
 		OUT=$outdir/icns/$typ
 		echo "quicklook thumbnails for $typ"
+		mkdir -p "$OUT"
 		for src in "$IN"*; do
 			render_quicklook "$OUT" "$src"
 		done
+		# render @2x
+		if [ "$typ" = 'retina' ]; then
+			echo "quicklook thumbnails for retina @2x"
+			mkdir -p "$OUT@2x"
+			for src in "$IN"*; do
+				render_quicklook "$OUT@2x" "$src" true
+			done
+		fi
 	done
 }
 
@@ -169,7 +183,8 @@ fi
 
 # export
 
-rm -f out-rendered.zip
-zip -o out-rendered.zip -r out-rendered/
+echo 'write results.zip'
+rm -f results.zip
+zip -q -o results.zip -r out-rendered/
 
 on_exit
