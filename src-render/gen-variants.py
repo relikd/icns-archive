@@ -14,6 +14,8 @@ from zipfile import ZipFile
 
 
 def make_app_wrapper(path):  # type: (str) -> None
+    assert int(os.path.basename(path).split('-', 1)[0]) > 0, \
+        'fname should start with number'
     base = path.replace('icns', 'app') + '/Contents'
     makedir(base + '/MacOS')
     makedir(base + '/Resources')
@@ -95,16 +97,16 @@ def generate_edge_cases(root):  # type: (str) -> None
             ('ic05', 32, 'argb'), ('icsb', 18, 'argb'),
             ('icp4', 16, 'argb'), ('icp5', 32, 'argb'),
         ]:
-            fname = '%s-%s.icns' % (ext, key)
+            basename = '%d-%s-%s.icns' % (sz, ext, key)
             data = Zip.read('solid-blue-%d.%s' % (sz, ext))
             if key == 'it32':
                 data = byte_(0x00, 4) + data
             # with plain compression
-            fn = os.path.join(base, 'compression', fname)
+            fn = os.path.join(base, 'compression', basename)
             write_icns(fn, [(key, data)] + mask_for_size(sz, ext))
             make_app_wrapper(fn)
             # with null-byte "fix"
-            fn = os.path.join(base, 'compression-w-fix', fname)
+            fn = os.path.join(base, 'compression-w-fix', basename)
             write_icns(fn, [(key, data + byte_(0))] + mask_for_size(sz, ext))
             make_app_wrapper(fn)
 
@@ -121,11 +123,10 @@ def generate_edge_cases(root):  # type: (str) -> None
             (48, 'SB24'), (128, 'ic07'), (32, 'ic11'),
         ]:
             mask = Zip.read('half-mask-%d.a' % (sz))
-            pth = os.path.join(base, 'alpha-precedence')
             for ext in ['argb', 'png', 'jpf']:
-                print('.', end='')
+                basename = '%d-%s-%s.icns' % (sz, ext, key)
                 data = Zip.read('half-green-%d.%s' % (sz, ext))
-                fn = os.path.join(pth, '%s-%s.icns' % (ext, key))
+                fn = os.path.join(base, 'alpha-precedence', basename)
                 write_icns(fn, [(key, data), (mask_keys[sz], mask)])
                 make_app_wrapper(fn)
 
@@ -133,19 +134,20 @@ def generate_edge_cases(root):  # type: (str) -> None
         #
         # because of wiki issue that says "il32+icl8 ignores transparency"
 
-        bit_icons = {16: 'ics8', 32: 'icl8', 48: 'ich8'}
+        bit_keys = {16: 'ics8', 32: 'icl8', 48: 'ich8'}
         for sz, key in [(16, 'is32'), (32, 'il32'), (48, 'ih32')]:
+            basename = '%d-rgb-%s' % (sz, key)
             mask = Zip.read('half-mask-%d.a' % (sz))
             data = Zip.read('solid-red-%d.rgb' % (sz))
             if key == 'it32':
                 data = byte_(0x00, 4) + data
-            content = [(key, data), (bit_icons[sz], byte_(0xFF, sz * sz))]
+            content = [(key, data), (bit_keys[sz], byte_(0xFF, sz * sz))]
 
-            fn = os.path.join(base, 'alpha-bits', 'rgb-%s-nomask.icns' % (key))
+            fn = os.path.join(base, 'alpha-bits', basename + '-nomask.icns')
             write_icns(fn, content)
             make_app_wrapper(fn)
 
-            fn = os.path.join(base, 'alpha-bits', 'rgb-%s-mask.icns' % (key))
+            fn = os.path.join(base, 'alpha-bits', basename + '-mask.icns')
             write_icns(fn, content + [(mask_keys[sz], mask)])
             make_app_wrapper(fn)
 
@@ -155,7 +157,7 @@ def generate_edge_cases(root):  # type: (str) -> None
 
         try:
             ZipRaw = ZipFile('assets/raw-files.zip')
-            for sz, key1, ext1, key2, _ in [
+            for sz, k1, ext1, k2, _ in [
                 (16, 'is32', 'rgb', 'ic11', 'png'),
                 (16, 'icp4', 'rgb', 'ic11', 'png'),
                 (16, 'ic04', 'argb', 'ic11', 'png'),
@@ -171,13 +173,13 @@ def generate_edge_cases(root):  # type: (str) -> None
                 (256, 'ic08', 'png', 'ic14', 'png'),
                 (512, 'ic09', 'png', 'ic10', 'png'),
             ]:
-                data1 = Zip.read('solid-red-%d.%s' % (sz, ext1))
-                data2 = ZipRaw.read('%dx%d.png' % (sz * 2, sz * 2))
-                if key1 == 'it32':
-                    data1 = byte_(0x00, 4) + data1
-                fn = os.path.join(base, 'retina', '%s-%s.icns' % (key1, key2))
-                write_icns(fn, [
-                    (key1, data1), (key2, data2)] + mask_for_size(sz, ext1))
+                basename = '%d-%s-%s.icns' % (sz, k1, k2)
+                d1 = Zip.read('solid-red-%d.%s' % (sz, ext1))
+                d2 = ZipRaw.read('%dx%d.png' % (sz * 2, sz * 2))
+                if k1 == 'it32':
+                    d1 = byte_(0x00, 4) + d1
+                fn = os.path.join(base, 'retina', basename)
+                write_icns(fn, [(k1, d1), (k2, d2)] + mask_for_size(sz, ext1))
                 make_app_wrapper(fn)
         finally:
             ZipRaw.close()

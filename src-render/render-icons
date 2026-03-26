@@ -80,6 +80,7 @@ render_app() {
 	sleep "$SLEEP"
 	mkdir -p "$(dirname "$dst")"
 	screencapture -t png "$dst"
+	rm -rf tmp/render/*
 	# close Finder window to allow DS_Store config reset
 	close_finder
 	sleep 0.5
@@ -151,6 +152,7 @@ on_exit() {
 	dock_hide 'false'
 	$FINDER_OPEN && close_finder
 	rm -rf tmp
+	echo 'exit.'
 	exit
 }
 trap on_exit INT
