@@ -1,9 +1,14 @@
 
 help:
-	@echo available:
-	@echo build, export, crop, crop-cleanup, collage, collage-cleanup, analyze
+	@echo 'available:'
+	@echo '  clean, build, export'
+	@echo '  crop, crop-cleanup, collage, collage-cleanup'
+	@echo '  analyze'
 
 # Part 1: generate icons
+
+clean:
+	rm -rf build export tmp out-rendered out-raw-files out-raw-edge-cases out-random-it32
 
 build: gen-variants.py
 	rm -rf build
@@ -12,13 +17,13 @@ build: gen-variants.py
 export/variants.zip: build ./render-icons ./assets/
 	mkdir -p export
 	ln -s build/variants input
-	zip -o export/variants.zip -r render-icons assets/dsstore-* input
+	zip -o export/variants.zip --symlinks -r render-icons assets/dsstore-* input/*
 	rm input
 
 export/edge-cases.zip: build ./render-icons ./assets/
 	mkdir -p export
 	ln -s build/edge-cases input
-	zip -o export/edge-cases.zip -r render-icons assets/dsstore-* input
+	zip -o export/edge-cases.zip --symlinks -r render-icons assets/dsstore-* input/*
 	rm input
 
 .PHONY: export
