@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Automatically take screenshot of all app icons
 #
 # Shortcomings:
@@ -9,7 +9,7 @@
 # * OS <= 10.1 has no `screencapture` --> but you can use `Cmd + Shift + 3`
 # * OS <= 10.0 has no `Cmd + Shift + 3` --> /Applications/Utilities/Grab
 
-if [[ ! $1 -gt 0 ]]; then
+if [ ! "$1" -gt 0 ]; then
 	echo "usage: $(basename "$0") <sleep>"
 	echo
 	echo '<sleep>: wait sec between screenshots to allow macOS to render icons'
@@ -17,12 +17,17 @@ if [[ ! $1 -gt 0 ]]; then
 fi
 
 SLEEP=$1
-indir=input
-outdir=out-rendered
-mkdir -p "$outdir"
+FINDER_OPEN=false
 
-echo 'generate quicklook thumbnail icons ...'
+# $1: "true" | "false"
+dock_hide() {
+	osascript -e "tell application \"System Events\" to set autohide of dock preferences to $1" > /dev/null
+}
 
+close_finder() {
+	osascript -e 'tell application "Finder" to close front window' > /dev/null
+	FINDER_OPEN=false
+}
 
 # $1: destination-dir (type), $2: source-files (.app)
 render_quicklook() {
@@ -64,37 +69,23 @@ render_app() {
 	rm -rf tmp
 	mkdir -p tmp/render
 	cp -R "$@" tmp/render 2> /dev/null
-	if [[ -z $(ls tmp/render) ]]; then
+	if [ -z "$(ls tmp/render)" ]; then
 		return
 	fi
 	echo "wait for screenshot $dst"
 	cp "assets/dsstore-$size" tmp/.DS_Store
 	sleep 0.5
 	open tmp/render
+	FINDER_OPEN=true
 	sleep "$SLEEP"
 	mkdir -p "$(dirname "$dst")"
 	screencapture -t png "$dst"
 	# close Finder window to allow DS_Store config reset
-	osascript -e 'tell application "Finder" to close front window' > /dev/null
+	close_finder
 	sleep 0.5
 }
 
-render_all_app() {
-	echo 'Warning:'
-	echo ' - Dont interact with the UI in the next 10 minutes.'
-	echo ' - Disable all screensavers!'
-	echo ' - Make sure Terminal has Screen Recording capability'
-	# just to trigger security popup
-	osascript -e 'tell application "Finder" to id of window 1' > /dev/null 2> /dev/null
-	screencapture -c -x || echo ''
-	read -n 1 -p 'ready? press any key to continue ' foo
-	echo
-	case $foo in
-		$'\e') echo 'aborting'; return 1;;
-	esac
-	echo
-	echo 'Automatic screenshot in progress ...'
-
+render_all_app_variants() {
 	for IN in "$indir/app/"*/; do
 		OUT=$outdir/app/$(basename "$IN")
 		render_app "$OUT/0-sm.png" 128 "$IN"{16,18,24,32,36,48,64}-*
@@ -107,14 +98,58 @@ render_all_app() {
 	echo 'done.'
 }
 
+show_notice() {
+	echo 'Warning:'
+	echo ' - Dont interact with the UI in the next 10 minutes.'
+	echo ' - Disable all screensavers!'
+	echo ' - Make sure Terminal has Screen Recording capability'
+	# just to trigger security popup
+	osascript -e 'tell application "Finder" to id of window 1' > /dev/null 2> /dev/null
+	screencapture -c -x || echo ''
 
-if [[ ! -d "$outdir/app" ]]; then
+	echo 'ready? press enter to continue '
+	read -r _
+	echo
+	echo 'Automatic screenshot in progress ...'
+}
+
+
+###################
+# Main entry point
+###################
+
+indir=input
+outdir=out-rendered
+mkdir -p "$outdir"
+
+echo 'generate quicklook thumbnail icons ...'
+
+# qlmanage icns thumbnails
+
+if [ ! -d "$outdir/app" ]; then
 	render_all_icns
 fi
 
-osascript -e 'tell application "System Events" to set autohide of dock preferences to true' > /dev/null
+# Hide Dock
 
-render_all_app
-rm -rf tmp
+dock_hide 'true'
 
-osascript -e 'tell application "System Events" to set autohide of dock preferences to false' > /dev/null
+on_exit() {
+	dock_hide 'false'
+	$FINDER_OPEN && close_finder
+	rm -rf tmp
+	exit
+}
+trap on_exit INT
+
+# Start screenshotting
+
+show_notice
+render_all_app_variants
+
+# export
+
+rm -f out-rendered.zip
+zip -o out-rendered.zip -r out-rendered/
+
+on_exit
