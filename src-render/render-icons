@@ -98,6 +98,19 @@ render_all_app_variants() {
 	echo 'done.'
 }
 
+render_all_app_edge_cases() {
+	for IN in "$indir/app/"*/; do
+		fn=$(basename "$IN")
+		if [ "$fn" = 'alpha-precedence' ]; then
+			SIZE=96
+		else
+			SIZE=128
+		fi
+		render_app "$outdir/app/$fn.png" $SIZE "$IN"*.app
+	done
+	echo 'done.'
+}
+
 show_notice() {
 	echo 'Warning:'
 	echo ' - Dont interact with the UI in the next 10 minutes.'
@@ -145,7 +158,12 @@ trap on_exit INT
 # Start screenshotting
 
 show_notice
-render_all_app_variants
+
+if [ -d "$indir/app/retina" ]; then
+	render_all_app_edge_cases
+else
+	render_all_app_variants
+fi
 
 # export
 
