@@ -6,7 +6,8 @@ for name in python python3; do
 done
 exit 1
 ':'''
-import os  # makedirs
+import os
+import sys
 import shutil  # copy
 from lib import ICNS_TYPES, DATA_TYPES, makedir, write_icns, byte_, bytes_
 from zipfile import ZipFile
@@ -48,8 +49,8 @@ def mask_for_size(size, typ):  # type: (int, str) -> list[tuple[str, bytes]]
     return []
 
 
-def generate_variants():  # type: () -> None
-    base = os.path.join('out', 'variants', 'icns')
+def generate_variants(root):  # type: (str) -> None
+    base = os.path.join(root, 'variants', 'icns')
     for ext in DATA_TYPES:
         makedir(os.path.join(base, ext))
     try:
@@ -73,8 +74,8 @@ def generate_variants():  # type: () -> None
         Zip.close()
 
 
-def generate_edge_cases():  # type: () -> None
-    base = os.path.join('out', 'edge-cases', 'icns')
+def generate_edge_cases(root):  # type: (str) -> None
+    base = os.path.join(root, 'edge-cases', 'icns')
     for sub in ['compression', 'compression-w-fix', 'alpha-precedence',
                 'alpha-bits', 'retina']:
         makedir(os.path.join(base, sub))
@@ -186,9 +187,8 @@ def generate_edge_cases():  # type: () -> None
         Zip.close()
 
 
-def generate_color_palette():  # type: () -> None
-    makedir('out')
-    fn = os.path.join('out', 'color-palette')
+def generate_color_palette(root):  # type: (str) -> None
+    fn = os.path.join(root, 'color-palette')
     print('generate color palette.')
     write_icns(fn + '-8.icns', [
         ('ics8', bytes_(range(256)))])
@@ -199,6 +199,17 @@ def generate_color_palette():  # type: () -> None
 
 
 if __name__ == '__main__':
-    generate_color_palette()
-    generate_variants()
-    generate_edge_cases()
+    if len(sys.argv) != 2:
+        print('usage: %s <out-dir>' %
+              os.path.basename(sys.argv[0]), file=sys.stderr)
+        exit(0)
+
+    root = sys.argv[1]
+    if os.path.exists(root):
+        print('<out-dir> already exists', file=sys.stderr)
+        exit(1)
+
+    makedir(root)
+    generate_color_palette(root)
+    generate_variants(root)
+    generate_edge_cases(root)
