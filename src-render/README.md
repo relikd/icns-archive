@@ -1,6 +1,14 @@
 # Analysis Part II
 
-General procedure:
+## Quickstart
+
+1. Run `make export` to generate a zip bundle with the `render` executable and all test files.
+2. Copy the `variants.zip` to your test-machine, unzip it, and run `./render-icons` from the extracted directory.
+3. Extract results (`zip -o results.zip -r out-rendered`) and copy them back to your machine.
+4. Start post-processing.
+
+
+## Detailed procedure
 
 1) `gen-raw-files.py` generates raw image files (argb¹, rgb¹, png, jpf) with a 2px interleaved RGB-pattern.
 => Pre-computed results are archived in `assets/raw-files.zip`.  

@@ -1,7 +1,32 @@
 
 help:
 	@echo available:
-	@echo crop, crop-cleanup, collage, collage-cleanup, analyze
+	@echo build, export, crop, crop-cleanup, collage, collage-cleanup, analyze
+
+# Part 1: generate icons
+
+build: gen-variants.py
+	rm -rf build
+	./gen-variants.py build
+
+export/variants.zip: build ./render-icons ./assets/
+	mkdir -p export
+	ln -s build/variants input
+	zip -o export/variants.zip -r render-icons assets/dsstore-* input
+	rm input
+
+export/edge-cases.zip: build ./render-icons ./assets/
+	mkdir -p export
+	ln -s build/edge-cases input
+	zip -o export/edge-cases.zip -r render-icons assets/dsstore-* input
+	rm input
+
+.PHONY: export
+export: export/variants.zip export/edge-cases.zip
+	@echo 'Delete build dir? [Y/n] ' && read ans && [ $${ans:-y} = y ]
+	rm -rf build
+
+# Part 2: postprocess rendered icons
 
 crop:
 	@for x in ../collection-rendered/*/; do \
@@ -32,6 +57,8 @@ collage-cleanup:
 			rm -rf "$$x"; \
 		fi \
 	done
+
+# Part 3: analyze results
 
 analyze:
 	./analyze.py ../collection-rendered/ ../results/rendered.db

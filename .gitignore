@@ -1,4 +1,5 @@
 .DS_Store
-src-render/out/
+src-render/build/
+src-render/export/
 src-render/out-rendered/
 collection-extracted/**/*.zip
