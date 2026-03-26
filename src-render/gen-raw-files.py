@@ -116,5 +116,56 @@ def generate():  # type: () -> None
         assert test_file(fname + '.jpf') == Enum.PERFECT
 
 
+def triangle(size, flip=False):  # type: (int, bool) -> list[int]
+    ''' Generate alpha mask triangle. Aligned top-left or top-right (flip) '''
+    # LOL. concatenation of lists with `sum()`
+    return sum((([0] * x + [255] * y) if flip else ([255] * y + [0] * x)
+                for x, y in zip(range(size), range(size, 0, -1))), [])
+
+
+def generate_edge_cases():  # type: () -> None
+    makedir('out-raw-edge-cases')
+    head = 'ARGB'.encode()
+    for s in SIZES:
+        fname = 'out-raw-edge-cases/'
+        print('generate edge cases %d' % s)
+        N = pack([0] * (s * s))
+        Y = pack([255] * (s * s))
+
+        # Test ARGB blue channel issue (last byte of compression)
+        if s in [16, 18, 32, 48, 128]:  # argb sizes
+            with open(fname + 'solid-blue-%d.argb' % (s), 'wb') as fp:
+                fp.write(head + Y + N + N + Y)
+            with open(fname + 'solid-blue-%d.rgb' % (s), 'wb') as fp:
+                fp.write(N + N + Y)
+
+        # Test @2x @1x compatibility
+        if s in [16, 18, 32]:  # @1x sizes (argb)
+            with open(fname + 'solid-red-%d.argb' % (s), 'wb') as fp:
+                fp.write(head + Y + N + Y + N)
+        if s in [16, 32, 128] + [48]:  # @1x sizes (rgb) + alpha-bits
+            with open(fname + 'solid-red-%d.rgb' % (s), 'wb') as fp:
+                fp.write(Y + N + N)
+        if s in [16, 24, 32, 128, 256, 512]:  # @1x sizes (png)
+            im = Image.new('RGB', (s, s))
+            im.putdata([(255, 0, 0) for _ in range(s*s)])
+            im.save(fname + 'solid-red-%d.png' % (s))
+            im.save(fname + 'solid-red-%d.jpf' % (s))
+
+        # Test alpha mask mixing
+        if s in [16, 32, 48, 128]:  # mask sizes
+            mask = triangle(s)
+            with open(fname + 'half-green-%d.argb' % (s), 'wb') as fp:
+                fp.write(head + pack(mask) + N + Y + N)
+            with open(fname + 'half-mask-%d.a' % (s), 'wb') as fp:
+                fp.write(bytes_(triangle(s, flip=True)))
+
+            im = Image.new('RGBA', (s, s))
+            im.putdata([(0, 255, 0, a) for a in mask])
+            im.save(fname + 'half-green-%d.png' % (s))
+            im.save(fname + 'half-green-%d.jpf' % (s))
+
+
 if __name__ == '__main__':
     generate()
+    generate_edge_cases()

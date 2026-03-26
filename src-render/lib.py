@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import os
 import struct  # pack
+if False:  # TYPE_CHECKING
+    from typing import Iterable  # noqa: F401 # novermin
+
 
 DATA_TYPES = ['jp2', 'jpf', 'png', 'rgb', 'argb', 'argb+mask', 'argbu', 'rgbu']
 ICNS_TYPES = [
@@ -37,6 +40,6 @@ def byte_(byte, copies=1):  # type: (int, int) -> bytes
     return struct.pack('B', byte) * copies
 
 
-def bytes_(bytelist):  # type: (list[int]) -> bytes
+def bytes_(bytelist):  # type: (Iterable[int]) -> bytes
     ''' Python 2 compatible int-to-bytes conversion '''
     return bytes().join(struct.pack('B', x) for x in bytelist)

@@ -1,4 +1,4 @@
 .DS_Store
-src-render/out-variants/
+src-render/out/
 src-render/out-rendered/
 collection-extracted/**/*.zip
