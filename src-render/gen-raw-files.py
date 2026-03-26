@@ -142,7 +142,7 @@ def generate_edge_cases():  # type: () -> None
         # Test @2x @1x compatibility
         if s in [16, 18, 32]:  # @1x sizes (argb)
             with open(fname + 'solid-red-%d.argb' % (s), 'wb') as fp:
-                fp.write(head + Y + N + Y + N)
+                fp.write(head + Y + Y + N + N)
         if s in [16, 32, 128] + [48]:  # @1x sizes (rgb) + alpha-bits
             with open(fname + 'solid-red-%d.rgb' % (s), 'wb') as fp:
                 fp.write(Y + N + N)
