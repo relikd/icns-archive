@@ -149,7 +149,7 @@ show_notice() {
 ###################
 
 indir=input
-outdir=out-rendered
+outdir=out
 mkdir -p "$outdir"
 
 echo 'generate quicklook thumbnail icons ...'
@@ -187,6 +187,6 @@ fi
 
 echo 'write results.zip'
 rm -f results.zip
-zip -q -o results.zip -r out-rendered/
+zip -q -o results.zip -r out/
 
 on_exit

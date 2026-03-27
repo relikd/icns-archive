@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 from lib import SIZES, makedir, byte_, bytes_
 from analyze import test_file, Enum
 from PIL import Image
@@ -91,11 +92,11 @@ def px(i):  # type: (int) -> tuple[int, int, int]
 # main
 #########################
 
-def generate():  # type: () -> None
-    makedir('out-raw-files')
+def generate(root):  # type: (str) -> None
+    makedir(root)
     for s in SIZES:
-        fname = 'out-raw-files/%dx%d' % (s, s)
-        print('generate ' + fname.split('/')[1])
+        fname = os.path.join(root, '%dx%d' % (s, s))
+        print('generate %dx%d' % (s, s))
         # ARGB
         with open(fname + '.argb', 'wb') as fp:
             fp.write(compressed_data(s, s, argb=True))
@@ -123,12 +124,12 @@ def triangle(size, flip=False):  # type: (int, bool) -> list[int]
                 for x, y in zip(range(size), range(size, 0, -1))), [])
 
 
-def generate_edge_cases():  # type: () -> None
-    makedir('out-raw-edge-cases')
+def generate_edge_cases(root):  # type: (str) -> None
+    makedir(root)
     head = 'ARGB'.encode()
     for s in SIZES:
-        fname = 'out-raw-edge-cases/'
-        print('generate edge cases %d' % s)
+        fname = os.path.join(root, '')
+        print('generate edge cases %dx%d' % (s, s))
         N = pack([0] * (s * s))
         Y = pack([255] * (s * s))
 
@@ -167,5 +168,5 @@ def generate_edge_cases():  # type: () -> None
 
 
 if __name__ == '__main__':
-    generate()
-    generate_edge_cases()
+    generate(os.path.join('build', 'raw-files'))
+    generate_edge_cases(os.path.join('build', 'raw-edge-cases'))

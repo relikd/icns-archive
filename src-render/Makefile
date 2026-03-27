@@ -8,7 +8,7 @@ help:
 # Part 1: generate icons
 
 clean:
-	rm -rf build export tmp out-rendered out-raw-files out-raw-edge-cases out-random-it32
+	rm -rf build export tmp out
 
 build: gen-variants.py
 	rm -rf build
