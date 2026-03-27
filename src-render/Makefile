@@ -40,11 +40,18 @@ crop:
 			./postprocess-crop.py "$$x"; \
 		fi \
 	done
+	@for x in ../collection-rendered-edge-cases/*/; do \
+		if [ -e "$$x/app/alpha-bits.png" ]; then \
+			echo "processing $$x"; \
+			./postprocess-crop.py "$$x"; \
+		fi \
+	done
 
 crop-cleanup:
 	@echo 'This will delete all original screenshots.'
 	@echo 'Are you sure? [y/N] ' && read ans && [ $${ans:-N} = y ]
 	find ../collection-rendered/ -type f -path '*/app/*/*' -name '*.png' -not -name '*.crop.png' -not -name '*.collage.png' -delete
+	find ../collection-rendered-edge-cases/ -type f -path '*/app/*' -name '*.png' -not -name '*.crop.png' -delete
 
 collage:
 	@for x in ../collection-rendered/*/; do \

@@ -42,7 +42,7 @@ def detect_rect(infile):  # type: (str) -> tuple[int, int, int, int]
     ''' Find Finder window content area '''
     x = Image.open(infile, mode='r')
     iw, ih = x.size
-    xy = [DS_STORE_RECT[0] - 50, ih - 100]
+    xy = [DS_STORE_RECT[0] - 50, ih - 150]
     needle = x.getpixel(xy)  # should be white
     while xy[1] < ih and x.getpixel(xy) == needle:
         xy[1] += 1
@@ -61,41 +61,64 @@ def detect_rect(infile):  # type: (str) -> tuple[int, int, int, int]
     return left, top, right, bottom
 
 
+def cut_whitespace(im):  # type: (Image) -> Image
+    ''' Remove empty whitespace at the bottom / right '''
+    needle = im.getpixel((0, 0))
+    w, h = im.size
+    # 5px grid sampling bottom-up
+    for y in range(h - 10, 0, -5):
+        for x in range(5, w, 5):
+            if im.getpixel((x, y)) != needle:
+                im = im.crop((0, 0, w, min(y + 15, h)))
+                break
+        else:
+            continue
+        break
+    # right-to-left sampling
+    w, h = im.size
+    for x in range(w - 10, 0, -5):
+        for y in range(5, h, 5):
+            if im.getpixel((x, y)) != needle:
+                return im.crop((0, 0, min(x + 20, w), h))
+    return im
+
+
 def auto_crop(infile, rect):  # type: (str, tuple[int, int, int, int]) -> Image
     ''' Use output of `detect_rect()` as second param '''
-    x = Image.open(infile, mode='r').crop(rect)
+    im = Image.open(infile, mode='r').crop(rect)
     name = os.path.basename(infile)
     if name.startswith('512-') or name.startswith('1024-'):
-        return x.crop((0, 0, 600, x.size[1]))
+        return im.crop((0, 0, 600, im.size[1]))
     if name.startswith('128') or name.startswith('256'):
-        return x.crop((0, 0, 600, 340))
+        return im.crop((0, 0, 600, 340))
     if name.startswith('0-'):
-        return x.crop((0, 0, x.size[0], 540))
-    return x
+        return im.crop((0, 0, im.size[0], 540))
+    # else: edge cases
+    return cut_whitespace(im)
 
 
-def auto_crop_dir(indir):  # type: (str) -> None
-    indir = os.path.join(indir, 'app')
-    if not os.path.isdir(os.path.join(indir, 'jp2')):
-        print('ERROR: %s/jp2/ does not exist' % indir, file=sys.stderr)
-        exit(1)
-
-    clip = detect_rect(os.path.join(indir, 'png', '256.png'))
+def auto_crop_dir(indir, rect):  # type: (str, tuple[int,int,int,int]) -> int
+    rv = 0
     for base, dirs, files in os.walk(indir):
         for fn in files:
             name, ext = fn.split('.', 1)
             if ext == 'png':  # and name + '.crop.png' not in files:
                 pth = os.path.join(base, name)
-                auto_crop(pth + '.png', clip).save(pth + '.crop.png')
+                auto_crop(pth + '.png', rect).save(pth + '.crop.png')
+                rv += 1
+    return rv
 
 
-def m_crop_dir(indir, rect):  # type: (str, list[int]) -> None
+def m_crop_dir(indir, rect):  # type: (str, list[int]) -> int
+    rv = 0
     for base, dirs, files in os.walk(indir):
         for fn in files:
             name, ext = fn.split('.', 1)
             if ext in ['png', 'tiff']:
                 pth = os.path.join(base, name)
                 Image.open(pth + '.' + ext).crop(rect).save(pth + '.crop.png')
+                rv += 1
+    return rv
 
 
 if __name__ == '__main__':
@@ -104,7 +127,19 @@ if __name__ == '__main__':
               os.path.basename(sys.argv[0]), file=sys.stderr)
         exit(0)
 
+    root = sys.argv[1]
+
     if len(sys.argv) == 2:
-        auto_crop_dir(sys.argv[1])
+        for fn in [
+            os.path.join(root, 'app', 'png', '256.png'),
+            os.path.join(root, 'app', 'alpha-bits.png')
+        ]:
+            if os.path.isfile(fn):
+                c = auto_crop_dir(os.path.join(root, 'app'), detect_rect(fn))
+                print('cropped %s images' % c)
+                exit(0)
+        print('ERROR: Could not detect directory structure', file=sys.stderr)
+        exit(1)
     else:
-        m_crop_dir(sys.argv[1], [int(x) for x in sys.argv[2:6]])
+        c = m_crop_dir(root, [int(x) for x in sys.argv[2:6]])
+        print('cropped %s images' % c)
