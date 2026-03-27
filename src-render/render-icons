@@ -9,7 +9,7 @@
 # * OS <= 10.1 has no `screencapture` --> but you can use `Cmd + Shift + 3`
 # * OS <= 10.0 has no `Cmd + Shift + 3` --> /Applications/Utilities/Grab
 
-if [ ! "$1" -gt 0 ]; then
+if [ $# != 1 ] || [ ! "$1" -gt 0 ]; then
 	echo "usage: $(basename "$0") <sleep>"
 	echo
 	echo '<sleep>: wait sec between screenshots to allow macOS to render icons'
@@ -29,11 +29,10 @@ close_finder() {
 	FINDER_OPEN=false
 }
 
-# $1: destination-dir (type), $2: source-files (.app), $3: is_retina
+# $1: destination-dir (type), $2: source-files (.app), [$3: scale]
 render_quicklook() {
 	dst_dir=$1
 	src=$2
-	retina=$3
 	name=$(basename "$src")
 	dst_file="$dst_dir/$name.png"
 	# skip already existing
@@ -42,10 +41,11 @@ render_quicklook() {
 	fi
 	# retina scaling
 	size=${name%%-*}
-	if [ "$retina" = true ]; then 
-		size=$((size*2))
+	if [ -z "$3" ]; then
+		qlmanage -x -t -s "$size" "$src" -o "$dst_dir" > /dev/null
+	else
+		qlmanage -x -t -s "$size" -f "$3" "$src" -o "$dst_dir" > /dev/null
 	fi
-	qlmanage -x -t -s "$size" "$src" -o "$dst_dir" > /dev/null
 	if [ ! -e "$dst_file" ]; then
 		touch "$dst_file"
 	fi
@@ -65,7 +65,7 @@ render_all_icns() {
 			echo "quicklook thumbnails for retina @2x"
 			mkdir -p "$OUT@2x"
 			for src in "$IN"*; do
-				render_quicklook "$OUT@2x" "$src" true
+				render_quicklook "$OUT@2x" "$src" 2
 			done
 		fi
 	done
