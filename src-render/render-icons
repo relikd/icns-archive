@@ -80,30 +80,32 @@ render_app() {
 	if [ -e "$dst" ]; then
 		return
 	fi
-	rm -rf tmp
+	rm -rf .DS_Store tmp/
+	sleep 0.2
 	mkdir -p tmp/render
-	cp -R "$@" tmp/render 2> /dev/null
-	if [ -z "$(ls tmp/render)" ]; then
+	if [ -z "$(ls "$@" 2> /dev/null)" ]; then
 		return
 	fi
-	echo "wait for screenshot $dst"
 	cp "assets/dsstore-$size" tmp/.DS_Store
-	sleep 0.5
+	sleep 0.2
 	open tmp/render
 	FINDER_OPEN=true
+	echo "wait for screenshot $dst"
+	sleep 0.5
+	cp -R "$@" tmp/render 2> /dev/null
 	sleep "$SLEEP"
 	mkdir -p "$(dirname "$dst")"
 	screencapture -t png "$dst"
 	rm -rf tmp/render/*
+	sleep 0.2
 	# close Finder window to allow DS_Store config reset
 	close_finder
-	sleep 0.5
 }
 
 render_all_app_variants() {
 	for IN in "$indir/app/"*/; do
 		OUT=$outdir/app/$(basename "$IN")
-		render_app "$OUT/0-sm.png" 128 "$IN"{16,18,24,32,36,48,64}-*
+		render_app "$OUT/0-sm.png" 128 "$IN"16-* "$IN"18-* "$IN"24-* "$IN"32-* "$IN"36-* "$IN"48-* "$IN"64-* 
 		render_app "$OUT/128.png" 256 "$IN"128-*
 		render_app "$OUT/256.png" 256 "$IN"256-*
 		render_app "$OUT/512-ic09.png" 512 "$IN"512-ic09*
@@ -169,7 +171,7 @@ on_exit() {
 	echo 'exit.'
 	exit
 }
-trap on_exit INT
+trap on_exit INT HUP TERM
 
 # Start screenshotting
 
