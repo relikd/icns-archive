@@ -3,11 +3,14 @@
 #
 # Shortcomings:
 # * OS == 10.6 my version could not `screencapture` so I used the `Skitch` app
-# * OS <= 10.5 has no `qlmanage -x` --> cant generate thumbnails 
+# * OS <= 10.5 has no `qlmanage -x -o` --> cant generate thumbnails 
+# * OS <= 10.4 has no `qlmanage` at all
 # * OS <= 10.3 has no Finder icon preview for `.icns` --> open all in Preview
 # * OS <= 10.2 wont open "broken" `.icns` files in Preview
 # * OS <= 10.1 has no `screencapture` --> but you can use `Cmd + Shift + 3`
 # * OS <= 10.0 has no `Cmd + Shift + 3` --> /Applications/Utilities/Grab
+#
+# 10.3 and 10.2 create screenshots in PDF format, 10.1 and 10.0 in TIFF
 
 if [ $# != 1 ] || [ ! "$1" -gt 0 ]; then
 	echo "usage: $(basename "$0") <sleep>"
@@ -95,7 +98,7 @@ render_app() {
 	cp -R "$@" tmp/render 2> /dev/null
 	sleep "$SLEEP"
 	mkdir -p "$(dirname "$dst")"
-	screencapture -t png "$dst"
+	screencapture "$dst"
 	rm -rf tmp/render/*
 	sleep 0.2
 	# close Finder window to allow DS_Store config reset
