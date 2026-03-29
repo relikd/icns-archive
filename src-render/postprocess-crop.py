@@ -107,17 +107,16 @@ def auto_crop(infile, rect):
 def find_all_autocrop(root):  # type: (str) -> list[str]
     rv = []
     for base, dirs, files in os.walk(root):
-        if 'app' not in dirs:
+        if os.path.basename(base) != 'app':
             continue
-        path = os.path.join(base, 'app')
         for fn in [
-            os.path.join(path, 'png', '256.png'),
-            os.path.join(path, 'alpha-bits.png'),
-            os.path.join(path, 'alpha-bits.tiff'),
+            os.path.join(base, 'png', '256.png'),
+            os.path.join(base, 'alpha-bits.png'),
+            os.path.join(base, 'alpha-bits.tiff'),
         ]:
             if not os.path.isfile(fn):
                 continue
-            print('processing %s' % path)
+            print('processing %s' % base)
             rect = detect_rect(fn)
             eligible = find_eligible(path)
             for fn in eligible:
