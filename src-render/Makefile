@@ -1,9 +1,6 @@
 
 help:
-	@echo 'available:'
-	@echo '  clean, build, export'
-	@echo '  crop, crop-cleanup, collage, collage-cleanup'
-	@echo '  analyze'
+	@echo 'available: clean, build, export, crop, collage, analyze'
 
 # Part 1: generate icons
 
@@ -34,41 +31,10 @@ export: export/variants.zip export/edge-cases.zip
 # Part 2: postprocess rendered icons
 
 crop:
-	@for x in ../collection-rendered/*/; do \
-		if [ -e "$$x/app/png/256.png" ]; then \
-			echo "processing $$x"; \
-			./postprocess-crop.py "$$x"; \
-		fi \
-	done
-	@for x in ../collection-rendered-edge-cases/*/; do \
-		if [ -e "$$x/app/alpha-bits.png" ]; then \
-			echo "processing $$x"; \
-			./postprocess-crop.py "$$x"; \
-		fi \
-	done
-
-crop-cleanup:
-	@echo 'This will delete all original screenshots.'
-	@echo 'Are you sure? [y/N] ' && read ans && [ $${ans:-N} = y ]
-	find ../collection-rendered/ -type f -path '*/app/*/*' -name '*.png' -not -name '*.crop.png' -not -name '*.collage.png' -delete
-	find ../collection-rendered-edge-cases/ -type f -path '*/app/*' -name '*.png' -not -name '*.crop.png' -delete
+	./postprocess-crop.py ..
 
 collage:
-	@for x in ../collection-rendered/*/; do \
-		if [ -e "$$x/app/png/256.crop.png" ]; then \
-			echo "processing $$x"; \
-			./postprocess-collage.py "$$x/app/"; \
-		fi \
-	done
-
-collage-cleanup:
-	@echo 'This will delete all cropped images.'
-	@echo 'Are you sure? [y/N] ' && read ans && [ $${ans:-N} = y ]
-	@for x in ../collection-rendered/*/app/*/; do \
-		if [ -f "$${x%/}.collage.png" ]; then \
-			rm -rf "$$x"; \
-		fi \
-	done
+	./postprocess-collage.py ..
 
 # Part 3: analyze results
 

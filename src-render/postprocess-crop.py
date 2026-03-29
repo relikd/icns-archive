@@ -38,23 +38,29 @@ from PIL import Image
 DS_STORE_RECT = (940, 689)  # window size is defined in DS_Store file
 
 
-def detect_rect(infile):  # type: (str) -> tuple[int, int, int, int]
+def detect_rect(infile, x=0, y=0):
+    # type: (str, int, int) -> tuple[int, int, int, int]
     ''' Find Finder window content area '''
-    x = Image.open(infile, mode='r')
-    iw, ih = x.size
-    xy = [DS_STORE_RECT[0] - 50, ih - 150]
-    needle = x.getpixel(xy)  # should be white
-    while xy[1] < ih and x.getpixel(xy) == needle:
+    im = Image.open(infile, mode='r')
+    iw, ih = im.size
+    # OS <= 10.4 (800x600)
+    if x == 0 or y == 0:
+        xy = [min(iw, DS_STORE_RECT[0]) - 50, ih - 150]
+    else:
+        xy = [x, y]
+
+    needle = im.getpixel(xy)  # should be white
+    while xy[1] < ih and im.getpixel(xy) == needle:
         xy[1] += 1
     xy[1] -= 1
-    while xy[0] > 0 and x.getpixel(xy) == needle:
+    while xy[0] > 0 and im.getpixel(xy) == needle:
         xy[0] -= 1
     xy[0] += 1
     left, bottom = xy
-    while xy[1] > 0 and x.getpixel(xy) == needle:
+    while xy[1] > 0 and im.getpixel(xy) == needle:
         xy[1] -= 1
     xy[1] += 1
-    while xy[0] < iw and x.getpixel(xy) == needle:
+    while xy[0] < iw and im.getpixel(xy) == needle:
         xy[0] += 1
     xy[0] -= 1
     right, top = xy
@@ -98,49 +104,86 @@ def auto_crop(infile, rect):
     return cut_whitespace(im)
 
 
-def auto_crop_dir(indir, rect):  # type: (str, tuple[int,int,int,int]) -> int
-    rv = 0
-    for base, dirs, files in os.walk(indir):
-        for fn in files:
-            name, ext = fn.split('.', 1)
-            if ext == 'png':  # and name + '.crop.png' not in files:
-                pth = os.path.join(base, name)
-                auto_crop(pth + '.png', rect).save(pth + '.crop.png')
-                rv += 1
+def find_all_autocrop(root):  # type: (str) -> list[str]
+    rv = []
+    for base, dirs, files in os.walk(root):
+        if 'app' not in dirs:
+            continue
+        path = os.path.join(base, 'app')
+        for fn in [
+            os.path.join(path, 'png', '256.png'),
+            os.path.join(path, 'alpha-bits.png'),
+            os.path.join(path, 'alpha-bits.tiff'),
+        ]:
+            if not os.path.isfile(fn):
+                continue
+            print('processing %s' % path)
+            rect = detect_rect(fn)
+            eligible = find_eligible(path)
+            for fn in eligible:
+                auto_crop(fn, rect).save(os.path.splitext(fn)[0] + '.crop.png')
+            rv.extend(eligible)
     return rv
 
 
-def m_crop_dir(indir, rect):  # type: (str, list[int]) -> int
-    rv = 0
+#######################
+# manual cropping
+#######################
+
+def m_crop_dir(indir, rect):  # type: (str,tuple[int,int,int,int]) -> list[str]
+    recompute = rect[2] == 0 or rect[3] == 0
+    start_x, start_y = rect[0], rect[1]
+    files = find_eligible(indir)
+    for fn in files:
+        outfile = os.path.splitext(fn)[0] + '.crop.png'
+        if recompute:
+            rect = detect_rect(fn, start_x, start_y)
+            cut_whitespace(Image.open(fn).crop(rect)).save(outfile)
+        else:
+            Image.open(fn).crop(rect).save(outfile)
+    return files
+
+
+def m_auto_crop_dir(indir, x, y):  # type: (str, int, int) -> list[str]
+    files = find_eligible(indir)
+    for fn in files:
+        cut_whitespace(Image.open(fn).crop(detect_rect(fn, x, y))).save(
+            os.path.splitext(fn)[0] + '.crop.png')
+    return files
+
+
+def find_eligible(indir):  # type: (str) -> list[str]
+    ''' Find all png files which haven't been cropped yet '''
+    rv = []
     for base, dirs, files in os.walk(indir):
         for fn in files:
-            name, ext = fn.split('.', 1)
+            ext = fn.split('.', 1)[1]  # can be "crop.png" or "collage.png"
             if ext in ['png', 'tiff']:
-                pth = os.path.join(base, name)
-                Image.open(pth + '.' + ext).crop(rect).save(pth + '.crop.png')
-                rv += 1
+                rv.append(os.path.join(base, fn))
     return rv
 
 
 if __name__ == '__main__':
-    if len(sys.argv) not in [2, 6] or not os.path.exists(sys.argv[1]):
-        print('usage: %s <dir> [<left> <top> <right> <bottom>]' %
-              os.path.basename(sys.argv[0]), file=sys.stderr)
+    if len(sys.argv) not in [2, 4, 6] or not os.path.exists(sys.argv[1]):
+        scpt = os.path.basename(sys.argv[0])
+        print('usage: %s <dir>' % scpt)
+        print('       %s <dir> <start-x> <start-y>' % scpt)
+        print('       %s <dir> <left> <top> <right> <bottom>' % scpt)
         exit(0)
 
     root = sys.argv[1]
 
     if len(sys.argv) == 2:
-        for fn in [
-            os.path.join(root, 'app', 'png', '256.png'),
-            os.path.join(root, 'app', 'alpha-bits.png')
-        ]:
-            if os.path.isfile(fn):
-                c = auto_crop_dir(os.path.join(root, 'app'), detect_rect(fn))
-                print('cropped %s images' % c)
-                exit(0)
-        print('ERROR: Could not detect directory structure', file=sys.stderr)
-        exit(1)
+        needs_cleanup = find_all_autocrop(root)
     else:
-        c = m_crop_dir(root, [int(x) for x in sys.argv[2:6]])
-        print('cropped %s images' % c)
+        a, b, c, d = [int(x) for x in sys.argv[2:]] + [0] * (6 - len(sys.argv))
+        needs_cleanup = m_crop_dir(root, (a, b, c, d))
+
+    print('cropped images: %d' % len(needs_cleanup))
+
+    if needs_cleanup:
+        ans = input('Delete original files? [y/N] ')
+        if ans.lower() == 'y':
+            print('cleanup.')
+            for old in needs_cleanup:
+                os.remove(old)
