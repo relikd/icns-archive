@@ -67,6 +67,10 @@ def detect_rect(infile, x=0, y=0):
     return left, top, right, bottom
 
 
+def validate_rect(rect):  # type: (tuple[int, int, int, int]) -> bool
+    return rect[2] - rect[0] > 150 and rect[3] - rect[1] > 150
+
+
 def cut_whitespace(im):  # type: (Image.Image) -> Image.Image
     ''' Remove empty whitespace at the bottom / right '''
     needle = im.getpixel((0, 0))
@@ -118,7 +122,11 @@ def find_all_autocrop(root):  # type: (str) -> list[str]
                 continue
             print('processing %s' % base)
             rect = detect_rect(fn)
-            eligible = find_eligible(path)
+            if not validate_rect(rect):
+                print('ERROR: invalid crop %s %s' % (
+                    rect, fn.removeprefix(root)))
+                continue
+            eligible = find_eligible(base)
             for fn in eligible:
                 auto_crop(fn, rect).save(os.path.splitext(fn)[0] + '.crop.png')
             rv.extend(eligible)
@@ -130,25 +138,24 @@ def find_all_autocrop(root):  # type: (str) -> list[str]
 #######################
 
 def m_crop_dir(indir, rect):  # type: (str,tuple[int,int,int,int]) -> list[str]
-    recompute = rect[2] == 0 or rect[3] == 0
-    start_x, start_y = rect[0], rect[1]
-    files = find_eligible(indir)
-    for fn in files:
-        outfile = os.path.splitext(fn)[0] + '.crop.png'
-        if recompute:
-            rect = detect_rect(fn, start_x, start_y)
-            cut_whitespace(Image.open(fn).crop(rect)).save(outfile)
-        else:
-            Image.open(fn).crop(rect).save(outfile)
-    return files
+    rv = []
+    for fn in find_eligible(indir):
+        Image.open(fn).crop(rect).save(os.path.splitext(fn)[0] + '.crop.png')
+        rv.append(fn)
+    return rv
 
 
 def m_auto_crop_dir(indir, x, y):  # type: (str, int, int) -> list[str]
-    files = find_eligible(indir)
-    for fn in files:
-        cut_whitespace(Image.open(fn).crop(detect_rect(fn, x, y))).save(
+    rv = []
+    for fn in find_eligible(indir):
+        rect = detect_rect(fn, x, y)
+        if not validate_rect(rect):
+            print('ERROR: invalid crop %s %s' % (rect, fn.removeprefix(indir)))
+            continue
+        cut_whitespace(Image.open(fn).crop(rect)).save(
             os.path.splitext(fn)[0] + '.crop.png')
-    return files
+        rv.append(fn)
+    return rv
 
 
 def find_eligible(indir):  # type: (str) -> list[str]
@@ -174,8 +181,11 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 2:
         needs_cleanup = find_all_autocrop(root)
+    elif len(sys.argv) == 4:
+        x, y = [int(x) for x in sys.argv[2:]]
+        needs_cleanup = m_auto_crop_dir(root, x, y)
     else:
-        a, b, c, d = [int(x) for x in sys.argv[2:]] + [0] * (6 - len(sys.argv))
+        a, b, c, d = [int(x) for x in sys.argv[2:]]
         needs_cleanup = m_crop_dir(root, (a, b, c, d))
 
     print('cropped images: %d' % len(needs_cleanup))
