@@ -61,7 +61,7 @@ def detect_rect(infile):  # type: (str) -> tuple[int, int, int, int]
     return left, top, right, bottom
 
 
-def cut_whitespace(im):  # type: (Image) -> Image
+def cut_whitespace(im):  # type: (Image.Image) -> Image.Image
     ''' Remove empty whitespace at the bottom / right '''
     needle = im.getpixel((0, 0))
     w, h = im.size
@@ -83,7 +83,8 @@ def cut_whitespace(im):  # type: (Image) -> Image
     return im
 
 
-def auto_crop(infile, rect):  # type: (str, tuple[int, int, int, int]) -> Image
+def auto_crop(infile, rect):
+    # type: (str, tuple[int, int, int, int]) -> Image.Image
     ''' Use output of `detect_rect()` as second param '''
     im = Image.open(infile, mode='r').crop(rect)
     name = os.path.basename(infile)
