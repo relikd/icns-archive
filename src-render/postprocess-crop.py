@@ -45,25 +45,29 @@ def detect_rect(infile, x=0, y=0):
     iw, ih = im.size
     # OS <= 10.4 (800x600)
     if x == 0 or y == 0:
-        xy = [min(iw, DS_STORE_RECT[0]) - 50, ih - 150]
+        sx, sy = min(iw, DS_STORE_RECT[0]) - 50, ih - 150
     else:
-        xy = [x, y]
+        sx, sy = x, y
 
-    needle = im.getpixel(xy)  # should be white
-    while xy[1] < ih and im.getpixel(xy) == needle:
-        xy[1] += 1
-    xy[1] -= 1
-    while xy[0] > 0 and im.getpixel(xy) == needle:
-        xy[0] -= 1
-    xy[0] += 1
-    left, bottom = xy
-    while xy[1] > 0 and im.getpixel(xy) == needle:
-        xy[1] -= 1
-    xy[1] += 1
-    while xy[0] < iw and im.getpixel(xy) == needle:
-        xy[0] += 1
-    xy[0] -= 1
-    right, top = xy
+    needle = im.getpixel((sx, sy))  # should be white
+    left, right, top, bottom = sx, sx, sy, sy
+    while right < (iw - 1) and im.getpixel((right + 1, sy)) == needle:
+        right += 1
+    while bottom < (ih - 1) and im.getpixel((sx, bottom + 1)) == needle:
+        bottom += 1
+    while left > 0 and im.getpixel((left - 1, bottom)) == needle:
+        left -= 1
+    while top > 0 and im.getpixel((right, top - 1)) == needle:
+        top -= 1
+    # macOS 11+ starts with subtle window shadows. No clear boundaries anymore.
+    # macOS 26 is an abomination with quadruple shadows overlapping each other.
+    # Alternative search. Start at previous position and try going further.
+    left += 3
+    while left > 0 and im.getpixel((left - 1, sy)) == needle:
+        left -= 1
+    top += 3
+    while top > 0 and im.getpixel((left, top - 1)) == needle:
+        top -= 1
     return left, top, right, bottom
 
 
