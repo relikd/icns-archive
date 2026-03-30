@@ -71,3 +71,4 @@ I do not know why this issue exists (or whether it may affect other machines).
     Whereas `.app` icons can be displayed since macOS 10.7 for the same field.
     The @2x variant, `icsB` (PNG), will display fine for `.icns` files when used as the only key.
     But when combined with the @1x variant, the `.icns` preview will break on non-Retina screens.
+  - See [retina-report.md](./retina-report.md) for further details.
