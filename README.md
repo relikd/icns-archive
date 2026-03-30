@@ -4,6 +4,12 @@ Files and scripts to test compatibility of `.icns` files.
 => Results see [results/README.md](./results/README.md).
 
 
+## License
+
+Source code licensed under MIT.  
+Text and images are public domain (CC0-1.0).
+
+
 ## About this project
 
 I wrote a Python library ([relikd/icnsutil](https://github.com/relikd/icnsutil/)) for parsing `.icns` files.
