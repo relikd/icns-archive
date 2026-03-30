@@ -33,9 +33,31 @@ If you want to query a specific key, use the proper notation (e.g., `x'69636c38'
 - There is no `ic06` key. Tested all sizes on 10.12 and 15 (both, app and icns).
 - OS 9.2.2 (and earlier) has no support for `.icns` files.
   Neither is there a Preview app to view icns files, nor has is support for `.app` bundles.
-  PowerPC apps *can* include icons but I couldn't find a quick-fix to apply a custom icon for a given app.
+  PowerPC apps *can* include icons (via Resource Forks) but I couldn't find a quick-fix to apply a custom icon to a given app.
 - A detailed analysis can be found at [rendered-report.md](./rendered-report.md)
 
 Curiously, on my local machine (macOS 15) I cannot render `jp2` images, only `jpf`.
 But when tested in a macOS 15 VM, `jp2` icons rendered fine.
 I do not know why this issue exists (or whether it may affect other machines).
+
+
+### Edge cases
+
+- RGB fields (`is32`, `il32`, `ih32`, `it32`) should always set an alpha mask (`s8mk`, `l8mk`, `h8mk`, `t8mk`).
+  If no mask is set, the behavior is undefined.
+  MacOS 10.9 – 26 show an opaque artwork for `.app` but a transparent artwork for `.icns` files.
+  MacOS 10.8 and earlier displays no icon for either.
+- If a field with alpha channel (jpf, png, argb) is combined with an alpha mask, the alpha channel of the image is used.
+  The alpha mask fields are ignored for all other types except 24-bit RGB.
+- RGB and ARGB compression has an issue where the very last value is ignored (`.app` only).
+  Additionally, if the last value is a repeating value, up to 130 copies would be ignored.
+  This test shows, that the issue is prevelent on macOS 12 – 26.
+  However, in my initial test in 2018, I stumbled upon this issue on a macOS 11 machine.
+  Given that my macOS 11 VM was emulated (Intel), I assume this is an ARM issue.
+- The `compression-w-fix`-test shows that adding one `NULL` byte can fix the compression issue – and is displayed correctly in all supported OS versions.
+- The `retina`-test is inconclusive because all VMs had no Retina display support.
+  - All icns `@2x` images (`qlmanage` with flag `-f 2`) show the proper icon since 10.7.
+    But that is expected, since only `ic10`, `ic11`, `ic12`, `ic13`, `ic14` fields are used (which are supported).
+  - Most icns `@1x` images show a red color (expected, non-retina test color).
+  - Preview for `.app` icons could not be tested because of the non-Retina display (all icons are red).
+  - MacOS 15 starts to display `@1x` icons with the content of the `@2x` version (with smearing colors).
