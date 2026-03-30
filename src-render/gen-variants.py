@@ -79,7 +79,7 @@ def generate_variants(root):  # type: (str) -> None
 def generate_edge_cases(root):  # type: (str) -> None
     base = os.path.join(root, 'edge-cases', 'icns')
     for sub in ['compression', 'compression-w-fix', 'alpha-precedence',
-                'alpha-bits', 'retina']:
+                'alpha-bits', 'retina', 'retina-other']:
         makedir(os.path.join(base, sub))
 
     try:
@@ -174,6 +174,8 @@ def generate_edge_cases(root):  # type: (str) -> None
                 (512, 'ic09', 'png', 'ic10', 'png'),
             ]:
                 basename = '%d-%s-%s.icns' % (sz, k1, k2)
+
+                # try with fake @1x image and real @2x image
                 d1 = Zip.read('solid-red-%d.%s' % (sz, ext1))
                 d2 = ZipRaw.read('%dx%d.png' % (sz * 2, sz * 2))
                 if k1 == 'it32':
@@ -181,6 +183,18 @@ def generate_edge_cases(root):  # type: (str) -> None
                 fn = os.path.join(base, 'retina', basename)
                 write_icns(fn, [(k1, d1), (k2, d2)] + mask_for_size(sz, ext1))
                 make_app_wrapper(fn)
+
+                # try again with real @1x image and fake @2x image
+                d3 = ZipRaw.read('%dx%d.%s' % (sz, sz, ext1))
+                d4 = Zip.read('solid-yellow-%d.png' % (sz * 2))
+                if k1 == 'it32':
+                    d3 = byte_(0x00, 4) + d3
+                fn = os.path.join(base, 'retina-other', basename)
+                write_icns(fn, [(k1, d3), (k2, d4)] + mask_for_size(sz, ext1))
+                make_app_wrapper(fn)
+                # we dont care about the icns at this point (tested above)
+                os.remove(fn)
+            os.rmdir(os.path.join(base, 'retina-other'))
         finally:
             ZipRaw.close()
 

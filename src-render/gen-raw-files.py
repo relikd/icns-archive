@@ -166,6 +166,12 @@ def generate_edge_cases(root):  # type: (str) -> None
             im.save(fname + 'half-green-%d.png' % (s))
             im.save(fname + 'half-green-%d.jpf' % (s))
 
+        # Test retina-other
+        if s in [32, 36, 48, 64, 256, 512, 1024]:  # @2x sizes (png)
+            im = Image.new('RGB', (s, s))
+            im.putdata([(255, 255, 0) for _ in range(s*s)])
+            im.save(fname + 'solid-yellow-%d.png' % (s))
+
 
 if __name__ == '__main__':
     generate(os.path.join('build', 'raw-files'))
