@@ -79,7 +79,7 @@ def generate_variants(root):  # type: (str) -> None
 def generate_edge_cases(root):  # type: (str) -> None
     base = os.path.join(root, 'edge-cases', 'icns')
     for sub in ['compression', 'compression-w-fix', 'alpha-precedence',
-                'alpha-bits', 'retina', 'retina-other']:
+                'alpha-bits', 'retina', 'retina-other', 'uncompressed']:
         makedir(os.path.join(base, sub))
 
     try:
@@ -197,6 +197,35 @@ def generate_edge_cases(root):  # type: (str) -> None
             os.rmdir(os.path.join(base, 'retina-other'))
         finally:
             ZipRaw.close()
+
+        # Test uncompressed ARGB (interleaved -> ARGBARGB)
+        #
+        # thanks @toy for finding the uncompressed example + data analysis
+        #                             .–.–.                 .––.
+        # image with first half alpha | |   + optional mask  \ |
+        #                             | |                     \|
+        #                             '–'                      '
+
+        for sz, key in ICNS_TYPES:
+            basename = '%d-rgba-%s' % (sz, key)
+            ints = []  # type: list[int]
+            for i in range(sz * sz):
+                firstHalf = (i % sz) < (sz // 2)
+                dat = [255 if firstHalf else 0, 0, 0, 0]
+                dat[1 + (i % 6) // 2] = 255
+                ints += dat
+            content = [(key, bytes_(ints))]
+
+            fn = os.path.join(base, 'uncompressed', basename + '.icns')
+            write_icns(fn, content)
+            make_app_wrapper(fn)
+
+            if sz in [16, 32, 48, 128]:
+                mask = Zip.read('half-mask-%d.a' % (sz))
+                content.append((mask_keys[sz], mask))
+                fn = os.path.join(base, 'uncompressed', basename+'+mask.icns')
+                write_icns(fn, content)
+                make_app_wrapper(fn)
 
         # Test if `ic05` is 16@2x or 32@1x
         #

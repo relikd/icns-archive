@@ -121,7 +121,9 @@ render_all_app_variants() {
 render_all_app_edge_cases() {
 	for IN in "$indir/app/"*/; do
 		fn=$(basename "$IN")
-		if [ "$fn" = 'alpha-precedence' ]; then
+		if [ "$fn" = 'uncompressed' ]; then
+			SIZE=72
+		elif [ "$fn" = 'alpha-precedence' ]; then
 			SIZE=96
 		else
 			SIZE=128
@@ -180,7 +182,7 @@ trap on_exit INT HUP TERM
 
 show_notice
 
-if [ -d "$indir/app/retina" ]; then
+if [ -d "$indir/app/retina" ] || [ -d "$indir/app/uncompressed" ]; then
 	render_all_app_edge_cases
 else
 	render_all_app_variants
