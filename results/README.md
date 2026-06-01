@@ -25,7 +25,6 @@ If you want to query a specific key, use the proper notation (e.g., `x'69636c38'
 - Many icns types render fine in `.icns` __OR__ in `.app` bundles, but not both (`icsb`, `icp6`).
 - The ARGB format for icns files was introduced in macOS 11.
 - But apparently, Apple could render some ARGB fields back in 10.5 when placed in an `.app` bundle.
-- Uncompressed RGB / ARGB was never supported.
 - In macOS 10.14 and 10.15 the ARGB fields `ic04` and `ic05` can be "fixed" by including a transparency mask (`s8mk` and `l8mk` respectively).
   Technically, the last field is ignored.
   For the mentioned fix, the alpha mask is ignored (and ARGB already includes transparency).
@@ -74,3 +73,49 @@ I do not know why this issue exists (or whether it may affect other machines).
     The @2x variant, `icsB` (PNG), will display fine for `.icns` files when used as the only key.
     But when combined with the @1x variant, the `.icns` preview will break on non-Retina screens.
   - See [retina-report.md](./retina-report.md) for further details.
+
+
+### Uncompressed RGB data
+
+All 24-bit RGB fields can also hold uncompressed ARGB data.
+The data must be interleaved (ARGBARGB) without any header (neither `it32` header, nor "ARGB" header).
+The alpha channel of the uncompressed data is ignored and shall be combined with one of the bitmask fields (`s8mk`, `l8mk`, `h8mk`, `t8mk`).
+Presumably the (fixed) data length determines whether to parse as uncompressed ARGB or as compressed RGB data.
+__NOTE:__ uncompressed RGB data is not supported!
+
+(thanks @toy for finding this)
+
+Even though there is still support for rendering uncompressed RGB data, I strongly discourage you against it.
+You can see in the table below how unstable that support is.
+E.g. 10.4 crashes if uncompressed data is used on unsupported fields (e.g. `ic07` as app icon).
+10.6 – 10.8 were the only OS which could render the alpha mask of the RGB data itself (H).
+
+Legend:
+- (T)riangle (transparency from bitmask)
+- (S)quare (no transparency)
+- (H)alf (transparency from uncompressed data)
+- (-) couldn't render icns icon
+- (#) couldn't render app icon
+
+
+Key       |10.0|10.1|10.2|10.3|10.4|10.5|10.6|10.7|10.8|10.9|10.10|10.11|10.12|10.13|10.14|10.15|11 |12 |13 |14 |15 |26
+----------|----|----|----|----|----|----|----|----|----|----|-----|-----|-----|-----|-----|-----|---|---|---|---|---|---
+is32      |    |    |    |    |    | ?  | S# |    |    | -S |  -S |  -S |  -S |  -S |  -S |  -S | -S| -S| -S| -S| -S| -S
+is32+mask | T  | T  | T  | T  | -T | ?  | T  | T  | T  | T  |  T  |  T  |  T  |  T  |  -T |  -T | T | T | T | T | T | T 
+il32      |    |    |    |    |    | ?  | S# |    |    | -S |  -S |  -S |  -S |  -S |  -S |  -S | -S| -S| -S| -S| -S| -S
+il32+mask | T  | T  | T  | T  | -T | ?  | T  | T  | T  | T  |  T  |  T  |  T  |  T  |  -T |  -T | T | T | T | T | T | T 
+ih32      |    |    |    |    |    | ?  | S# |    |    | -S |  -S |  -S |  -S |  -S |  -S |  -S | -S| -S| -S| -S| -S| -S
+ih32+mask | T  | T  | T  | T  | -T | ?  | T  | T  | T  | T  |  T  |  T  |  T  |  T  |  -T |  -T | T | T | T | T | T | T 
+it32      |    |    |    |    |    | ?  |    |    |    | -S |  -S |  -S |  -S |  -S |  -S |  -S | -S| -S| -S| -S| -S| -S
+it32+mask | T  | T  | T  | T  | -T | ?  | -T | T  | T  | T  |  T  |  T  |  T  |  T  |  -T |  -T | T | T | T | T | T | T 
+icp4      |    |    |    |    |    | ?  | -H |    |    | -S |  -S |  -S |  -S |  -S |  -S |  -S | -S| -S| -S| -S| -S| -S
+icp4+mask |    |    |    |    |    | ?  | -H | T  | T  | T  |  T  |  T  |  T  |  T  |  -T |  -T | T | T | T | T | T | T 
+icp5      |    |    |    |    |    | ?  | -H |    |    | -S |  -S |  -S |  -S |  -S |  -S |  -S | -S| -S| -S| -S| -S| -S
+icp5+mask |    |    |    |    |    | ?  | -H | T  | T  | T  |  T  |  T  |  T  |  T  |  -T |  -T | T | T | T | T | T | T 
+icp6      |    |    |    |    |    | ?  | -H | -H | -H |    |     |     |     |     |     |     |   |   |   |   |   |
+icp6+mask |    |    |    |    |    | ?  | -H | -H | -H |    |     |     |     |     |     |     |   |   |   |   |   |
+icsb      |    |    |    |    |    | ?  |    | -H | -H |    |     |     |     |     |     |     |   |   |   |   |   |
+ic05      |    |    |    |    |    | ?  |    | -H | -H |    |     |     |     |     |     |     |   |   |   |   |   |
+ic05+mask |    |    |    |    |    | ?  |    | -H | -H |    |     |     |     |     |     |     |   |   |   |   |   |
+
+*Note:* I couldn't test 10.5 because my VM wouldn't start.

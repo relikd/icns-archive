@@ -200,6 +200,15 @@ The ARGB format is very similar to the 24-bit RGB format and uses the same Compr
 The image data is split into four channels (e.g., AAARRRGGGBBB) and separately compressed (see [Compression](#compression)).
 The only difference is the added alpha channel.
 
+### Uncompressed RGB
+All 24-bit RGB fields can be used with uncompressed data.
+The uncompressed data uses 4 bytes per pixel in an interleaved pattern (ARGBARGBARGB) without any prefix.
+Presumably, the distinction to parse as uncompressed data is determined by data length alone (`size * size * 4` bytes).
+
+Even though you must provide an alpha channel, its data is ignored.
+You must still bundle a matching 8-bit mask to add transparency.
+Avoid using uncompressed data.
+
 ### JP2, JPF, PNG
 Unmodified image data of a JPEG 2000 or PNG image.
 
